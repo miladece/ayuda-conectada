@@ -8,7 +8,7 @@ const Login = () => {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header hideNavigation />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto space-y-6">
           <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2>
@@ -18,7 +18,13 @@ const Login = () => {
             <p className="text-gray-600">¿No tienes una cuenta?</p>
             <Button 
               variant="outline" 
-              onClick={() => navigate('/signup')}
+              onClick={() => {
+                navigate('/signup');
+                // Wait for navigation to complete before scrolling
+                setTimeout(() => {
+                  document.getElementById('signup-form')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
               className="w-full"
             >
               Registrarse
