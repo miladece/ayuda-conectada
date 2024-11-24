@@ -38,7 +38,7 @@ const Index = () => {
 
       console.log("Executing Supabase query:", {
         timestamp: new Date().toISOString(),
-        queryDetails: query.toSQL ? query.toSQL() : 'Query details not available'
+        query: `Fetching publications${selectedCategory ? ` for category: ${selectedCategory}` : ''}`
       });
 
       const { data, error } = await query;
