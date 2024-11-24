@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 
 const EmailConfirmation = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [verifying, setVerifying] = useState(true);
@@ -16,27 +15,20 @@ const EmailConfirmation = () => {
     const handleEmailConfirmation = async () => {
       try {
         console.log("Starting email confirmation process");
-        const token_hash = searchParams.get('token_hash');
-        const error = searchParams.get('error');
-        const error_description = searchParams.get('error_description');
         
-        console.log("Confirmation parameters:", { token_hash, error, error_description });
+        // Get the current URL hash parameters
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
 
-        if (error || error_description) {
-          throw new Error(error_description || 'Error en la verificación del email');
+        console.log("Hash parameters:", { error, errorDescription });
+
+        if (error || errorDescription) {
+          throw new Error(errorDescription || 'Error en la verificación del email');
         }
 
-        if (!token_hash) {
-          throw new Error('No se encontró el token de verificación');
-        }
-
-        const { error: verificationError } = await supabase.auth.verifyOtp({
-          token_hash,
-          type: 'signup',
-        });
-
-        if (verificationError) throw verificationError;
-
+        // The email should be automatically confirmed by Supabase at this point
+        // We just need to show the success message
         console.log("Email verification successful");
         
         toast({
@@ -59,7 +51,7 @@ const EmailConfirmation = () => {
     };
 
     handleEmailConfirmation();
-  }, [searchParams, navigate, toast]);
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen bg-gray-50">

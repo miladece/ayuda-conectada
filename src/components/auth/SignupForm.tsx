@@ -23,7 +23,8 @@ export const SignupForm = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`
+          // Remove /auth/confirm from redirect URL to match Supabase's default behavior
+          emailRedirectTo: window.location.origin
         }
       });
 
