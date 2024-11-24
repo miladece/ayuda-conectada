@@ -65,6 +65,14 @@ export const Header = () => {
     navigate('/login');
   };
 
+  const handleSearchResultClick = (result: any) => {
+    // Determine the route based on the publication type
+    const route = `/${result.type}s`; // adds 's' to make plural (ofertas, solicitudes, donaciones)
+    setSearchQuery(""); // Clear the search
+    setSearchResults([]); // Clear results
+    navigate(route, { state: { highlightId: result.id } }); // Pass the ID to highlight the specific item
+  };
+
   return (
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4 py-6">
@@ -129,10 +137,7 @@ export const Header = () => {
                 <div
                   key={result.id}
                   className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                  onClick={() => {
-                    navigate(`/publication/${result.id}`);
-                    setSearchQuery("");
-                  }}
+                  onClick={() => handleSearchResultClick(result)}
                 >
                   <h3 className="font-medium">{result.title}</h3>
                   <p className="text-sm text-gray-600 truncate">{result.description}</p>
