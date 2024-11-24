@@ -59,7 +59,8 @@ export const ItemCard = ({
     console.error("Image failed to load:", {
       imageUrl: image,
       error: "Loading failed - falling back to placeholder",
-      status: e.currentTarget.naturalWidth === 0 ? "No image data received" : "Image data corrupted"
+      status: e.currentTarget.naturalWidth === 0 ? "No image data received" : "Image data corrupted",
+      timestamp: new Date().toISOString()
     });
     
     if (image.includes('supabase') && image.includes('storage')) {
@@ -69,6 +70,7 @@ export const ItemCard = ({
     e.currentTarget.src = '/placeholder.svg';
   };
 
+  // Add logging when component renders
   console.log("ItemCard render:", {
     type,
     title,
@@ -76,7 +78,13 @@ export const ItemCard = ({
     timestamp: new Date().toISOString()
   });
 
+  // Add logging for image URL processing
   const imageUrl = image?.startsWith('http') ? image : `/placeholder.svg`;
+  console.log("Processed image URL:", {
+    originalImage: image,
+    processedUrl: imageUrl,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <Card className="card-hover">
@@ -87,6 +95,13 @@ export const ItemCard = ({
           className="absolute inset-0 w-full h-full object-cover"
           onError={handleImageError}
           loading="lazy"
+          onLoad={() => {
+            console.log("Image loaded successfully:", {
+              url: imageUrl,
+              title,
+              timestamp: new Date().toISOString()
+            });
+          }}
         />
       </div>
       
