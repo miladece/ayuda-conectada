@@ -9,6 +9,7 @@ import Ofertas from "./pages/Ofertas";
 import Solicitudes from "./pages/Solicitudes";
 import Publicar from "./pages/Publicar";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/solicitudes" element={<Solicitudes />} />
             <Route path="/publicar" element={<Publicar />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
