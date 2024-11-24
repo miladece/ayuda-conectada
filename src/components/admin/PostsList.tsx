@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 
-type Post = {
+type Publication = {
   id: string;
   title: string;
   user_id: string;
+  type: string;
+  category: string;
 };
 
 interface PostsListProps {
-  posts: Post[];
+  posts: Publication[];
   onDeletePost: (postId: string) => void;
 }
 
@@ -20,6 +22,9 @@ export const PostsList = ({ posts, onDeletePost }: PostsListProps) => {
           <div key={post.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
             <div>
               <p className="font-medium">{post.title}</p>
+              <p className="text-sm text-gray-500">
+                {post.type} - {post.category}
+              </p>
               <p className="text-sm text-gray-500">Por: {post.user_id}</p>
             </div>
             <Button

@@ -3,9 +3,10 @@ import { Header } from "@/components/Header";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ItemCard } from "@/components/ItemCard";
 
 const Profile = () => {
-  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [userPublications, setUserPublications] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
 
@@ -16,21 +17,21 @@ const Profile = () => {
       
       if (user) {
         setUser(user);
-        const { data: posts, error } = await supabase
-          .from('posts')
+        const { data: publications, error } = await supabase
+          .from('publications')
           .select('*')
           .eq('user_id', user.id);
 
         if (error) {
-          console.error("Error loading posts:", error);
+          console.error("Error loading publications:", error);
           toast({
             variant: "destructive",
             title: "Error",
             description: "No se pudieron cargar tus publicaciones",
           });
         } else {
-          console.log("User posts loaded:", posts);
-          setUserPosts(posts || []);
+          console.log("User publications loaded:", publications);
+          setUserPublications(publications || []);
         }
       }
     };
@@ -54,19 +55,21 @@ const Profile = () => {
         </Card>
 
         <h3 className="text-xl font-semibold mb-4">Mis Publicaciones</h3>
-        {userPosts.length === 0 ? (
+        {userPublications.length === 0 ? (
           <p className="text-gray-600">No tienes publicaciones todavía.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userPosts.map((post) => (
-              <Card key={post.id}>
-                <CardHeader>
-                  <CardTitle>{post.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{post.description}</p>
-                </CardContent>
-              </Card>
+            {userPublications.map((publication) => (
+              <ItemCard
+                key={publication.id}
+                type={publication.type}
+                category={publication.category}
+                title={publication.title}
+                location={publication.location}
+                description={publication.description}
+                contact={publication.contact}
+                image={publication.image_url || '/placeholder.svg'}
+              />
             ))}
           </div>
         )}

@@ -9,7 +9,7 @@ import { checkFirstUser, checkAdminStatus } from "@/utils/adminUtils";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
-  const [posts, setPosts] = useState([]);
+  const [publications, setPublications] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -64,8 +64,8 @@ const Admin = () => {
       .from('profiles')
       .select('*');
     
-    const { data: postsData, error: postsError } = await supabase
-      .from('posts')
+    const { data: publicationsData, error: publicationsError } = await supabase
+      .from('publications')
       .select('*');
     
     if (usersError) {
@@ -77,8 +77,8 @@ const Admin = () => {
       });
     }
 
-    if (postsError) {
-      console.error("Error loading posts:", postsError);
+    if (publicationsError) {
+      console.error("Error loading publications:", publicationsError);
       toast({
         variant: "destructive",
         title: "Error",
@@ -87,39 +87,17 @@ const Admin = () => {
     }
     
     if (usersData) setUsers(usersData);
-    if (postsData) setPosts(postsData);
-  };
-
-  const handleBanUser = async (userId: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ banned: true })
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error("Error banning user:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo banear al usuario",
-      });
-    } else {
-      toast({
-        title: "Usuario baneado",
-        description: "El usuario ha sido baneado correctamente",
-      });
-      loadData();
-    }
+    if (publicationsData) setPublications(publicationsData);
   };
 
   const handleDeletePost = async (postId: string) => {
     const { error } = await supabase
-      .from('posts')
+      .from('publications')
       .delete()
       .eq('id', postId);
 
     if (error) {
-      console.error("Error deleting post:", error);
+      console.error("Error deleting publication:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -144,8 +122,8 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">Panel de Administración</h2>
         <div className="space-y-8">
-          <UsersList users={users} onBanUser={handleBanUser} />
-          <PostsList posts={posts} onDeletePost={handleDeletePost} />
+          <UsersList users={users} onBanUser={() => {}} />
+          <PostsList posts={publications} onDeletePost={handleDeletePost} />
         </div>
       </main>
     </div>

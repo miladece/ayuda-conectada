@@ -1,9 +1,12 @@
 import { Header } from "@/components/Header";
 import { ItemCard } from "@/components/ItemCard";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const Solicitudes = () => {
+  const { toast } = useToast();
   const categories = [
     { id: "vehiculos", label: "Vehículos", icon: "🚗" },
     { id: "electrodomesticos", label: "Electrodomésticos", icon: "🏠" },
@@ -12,11 +15,41 @@ const Solicitudes = () => {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const items = []; // Empty array instead of dummy data
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredItems = selectedCategory
-    ? items.filter((item) => item.category === selectedCategory)
-    : items;
+  useEffect(() => {
+    const fetchSolicitudes = async () => {
+      try {
+        let query = supabase
+          .from('publications')
+          .select('*')
+          .eq('type', 'solicitud');
+        
+        if (selectedCategory) {
+          query = query.eq('category', selectedCategory);
+        }
+
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        console.log("Fetched solicitudes:", data);
+        setItems(data || []);
+      } catch (error) {
+        console.error("Error fetching solicitudes:", error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar las solicitudes.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSolicitudes();
+  }, [selectedCategory, toast]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,11 +63,11 @@ const Solicitudes = () => {
             {categories.map((category) => (
               <Badge
                 key={category.id}
-                variant={selectedCategory === category.label ? "default" : "outline"}
+                variant={selectedCategory === category.id ? "default" : "outline"}
                 className="text-lg py-2 px-4 cursor-pointer hover:bg-primary/90 transition-colors"
                 onClick={() => 
                   setSelectedCategory(
-                    selectedCategory === category.label ? null : category.label
+                    selectedCategory === category.id ? null : category.id
                   )
                 }
               >
@@ -45,11 +78,26 @@ const Solicitudes = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item, index) => (
-            <ItemCard key={index} {...item} />
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center text-gray-600">Cargando solicitudes...</p>
+        ) : items.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <ItemCard 
+                key={item.id}
+                type={item.type}
+                category={item.category}
+                title={item.title}
+                location={item.location}
+                description={item.description}
+                contact={item.contact}
+                image={item.image_url || '/placeholder.svg'}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-600">No hay solicitudes disponibles</p>
+        )}
       </main>
     </div>
   );
