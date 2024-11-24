@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Upload, X } from "lucide-react";
+import { useToast } from "./ui/use-toast";
 
 interface ImageUploadProps {
   onImageSelected: (file: File | null) => void;
@@ -9,19 +10,28 @@ interface ImageUploadProps {
 export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const { toast } = useToast();
 
   const handleFile = useCallback((file: File) => {
     if (!file) return;
 
     // Check file type
     if (!file.type.startsWith('image/')) {
-      console.error('File must be an image');
+      toast({
+        title: "Error",
+        description: "El archivo debe ser una imagen",
+        variant: "destructive",
+      });
       return;
     }
 
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      console.error('File size must be less than 5MB');
+      toast({
+        title: "Error",
+        description: "El archivo debe pesar menos de 5MB",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -66,7 +76,11 @@ export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
               lastModified: Date.now(),
             });
             onImageSelected(resizedFile);
-            console.log('Image resized successfully');
+            console.log('Image resized successfully', {
+              originalSize: file.size,
+              newSize: resizedFile.size,
+              dimensions: `${width}x${height}`
+            });
           }
         },
         'image/jpeg',
@@ -74,7 +88,7 @@ export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
       );
     };
     img.src = URL.createObjectURL(file);
-  }, [onImageSelected]);
+  }, [onImageSelected, toast]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
