@@ -34,7 +34,7 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
         .from('profiles')
         .insert({
           user_id: userId,
-          user_email: userEmail,
+          name: userEmail,
           is_admin: true,
           banned: false
         });
@@ -53,7 +53,7 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
       .from('profiles')
       .insert({
         user_id: userId,
-        user_email: userEmail,
+        name: userEmail,
         is_admin: false,
         banned: false
       });
