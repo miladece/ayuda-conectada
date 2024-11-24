@@ -41,7 +41,7 @@ export const PublicationForm = () => {
         <label className="text-sm font-medium">Tipo de anuncio</label>
         <Select
           value={type}
-          onValueChange={(value: "oferta" | "solicitud") => setType(value)}
+          onValueChange={(value: "oferta" | "solicitud" | "donacion") => setType(value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona el tipo" />
@@ -49,6 +49,7 @@ export const PublicationForm = () => {
           <SelectContent>
             <SelectItem value="oferta">Oferta</SelectItem>
             <SelectItem value="solicitud">Solicitud</SelectItem>
+            <SelectItem value="donacion">Donación</SelectItem>
           </SelectContent>
         </Select>
       </div>
