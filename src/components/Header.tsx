@@ -1,22 +1,78 @@
 import { Button } from "./ui/button";
-import { ShoppingBag, MessageSquare, Upload } from "lucide-react";
+import { ShoppingBag, MessageSquare, Upload, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log("Current user in header:", user);
+      setUser(user);
+    };
+    getUser();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", _event, session?.user);
+      setUser(session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   return (
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4 py-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
             Ayuda DANA Valencia
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Conectando a los afectados por las inundaciones con recursos esenciales. 
-            Juntos podemos ayudar a reconstruir nuestra comunidad.
-          </p>
+          
+          {user && (
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600">Hola, {user.email}</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    Admin Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
+        
+        <p className="text-gray-600 max-w-2xl mx-auto text-center mb-8">
+          Conectando a los afectados por las inundaciones con recursos esenciales. 
+          Juntos podemos ayudar a reconstruir nuestra comunidad.
+        </p>
         
         <div className="flex flex-wrap justify-center gap-4">
           <Button

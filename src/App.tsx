@@ -10,6 +10,7 @@ import Solicitudes from "./pages/Solicitudes";
 import Publicar from "./pages/Publicar";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/publicar" element={<Publicar />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </BrowserRouter>
         <Footer />
