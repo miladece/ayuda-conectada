@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -10,164 +9,31 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ImageUpload } from "./ImageUpload";
-import { useToast } from "./ui/use-toast";
 import ReCAPTCHA from "react-google-recaptcha";
-import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
+import { usePublicationForm } from "@/hooks/usePublicationForm";
 
 const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
 export const PublicationForm = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [type, setType] = useState<"oferta" | "solicitud">("oferta");
-  const [category, setCategory] = useState("");
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
-  const [contact, setContact] = useState("");
-  const [image, setImage] = useState<File | null>(null);
-  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log("Current user in publication form:", user);
-      setUser(user);
-      
-      if (!user) {
-        toast({
-          title: "Inicio de sesión requerido",
-          description: "Por favor, inicia sesión para publicar un anuncio.",
-          variant: "destructive",
-        });
-        navigate('/login');
-      }
-    };
-    checkUser();
-  }, [navigate, toast]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Debes iniciar sesión para publicar un anuncio.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      navigate('/login');
-      return;
-    }
-
-    if (!captchaValue) {
-      toast({
-        title: "Error",
-        description: "Por favor, completa el captcha antes de continuar.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      let imageUrl = null;
-      if (image) {
-        console.log("Starting image upload process");
-        const fileExt = image.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        
-        // Check if bucket exists and is accessible
-        const { data: bucketData, error: bucketError } = await supabase
-          .storage
-          .getBucket('images');
-          
-        if (bucketError) {
-          console.error("Error accessing bucket:", bucketError);
-          throw new Error("Error accessing storage bucket");
-        }
-        
-        console.log("Uploading file:", fileName);
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('images')
-          .upload(fileName, image, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw uploadError;
-        }
-        
-        console.log("File uploaded successfully:", uploadData);
-        
-        const { data: { publicUrl }, error: urlError } = supabase.storage
-          .from('images')
-          .getPublicUrl(fileName);
-          
-        if (urlError) {
-          console.error("Error getting public URL:", urlError);
-          throw urlError;
-        }
-        
-        console.log("Got public URL:", publicUrl);
-        imageUrl = publicUrl;
-      }
-
-      const { error: insertError } = await supabase
-        .from('publications')
-        .insert([
-          {
-            type,
-            category,
-            title,
-            location,
-            description,
-            contact,
-            image_url: imageUrl,
-            user_id: user.id
-          }
-        ]);
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Anuncio publicado",
-        description: "Tu anuncio ha sido publicado correctamente.",
-      });
-
-      // Reset form
-      setType("oferta");
-      setCategory("");
-      setTitle("");
-      setLocation("");
-      setDescription("");
-      setContact("");
-      setImage(null);
-      setCaptchaValue(null);
-      
-      navigate('/');
-    } catch (error: any) {
-      console.error("Error publishing:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al publicar el anuncio. Por favor, inténtalo de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    type,
+    setType,
+    category,
+    setCategory,
+    title,
+    setTitle,
+    location,
+    setLocation,
+    description,
+    setDescription,
+    contact,
+    setContact,
+    image,
+    setImage,
+    setCaptchaValue,
+    isSubmitting,
+    handleSubmit
+  } = usePublicationForm();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
@@ -250,7 +116,10 @@ export const PublicationForm = () => {
       <div className="flex justify-center my-4">
         <ReCAPTCHA
           sitekey={RECAPTCHA_SITE_KEY}
-          onChange={handleCaptchaChange}
+          onChange={(value) => {
+            console.log("Captcha value:", value);
+            setCaptchaValue(value);
+          }}
         />
       </div>
 
