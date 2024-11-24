@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 export const usePublicationForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [type, setType] = useState<"oferta" | "solicitud">("oferta");
+  const [type, setType] = useState<"oferta" | "solicitud" | "donacion">("oferta");
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -69,7 +69,6 @@ export const usePublicationForm = () => {
         console.log("Starting image upload process");
         const fileExt = image.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
-        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('images')
           .upload(fileName, image);
@@ -79,11 +78,14 @@ export const usePublicationForm = () => {
           throw uploadError;
         }
         
+        console.log("Image uploaded successfully:", uploadData);
+        
         const { data: { publicUrl } } = supabase.storage
           .from('images')
           .getPublicUrl(fileName);
           
         imageUrl = publicUrl;
+        console.log("Public URL generated:", imageUrl);
       }
 
       const { error: insertError } = await supabase
@@ -102,6 +104,8 @@ export const usePublicationForm = () => {
         ]);
 
       if (insertError) throw insertError;
+
+      console.log("Publication created successfully");
 
       toast({
         title: "Anuncio publicado",

@@ -7,8 +7,8 @@ import {
 } from "@/components/ui/select";
 
 interface PublicationTypeSelectProps {
-  value: "oferta" | "solicitud";
-  onChange: (value: "oferta" | "solicitud") => void;
+  value: "oferta" | "solicitud" | "donacion";
+  onChange: (value: "oferta" | "solicitud" | "donacion") => void;
 }
 
 export const PublicationTypeSelect = ({ value, onChange }: PublicationTypeSelectProps) => {
@@ -22,6 +22,7 @@ export const PublicationTypeSelect = ({ value, onChange }: PublicationTypeSelect
         <SelectContent>
           <SelectItem value="oferta">Oferta</SelectItem>
           <SelectItem value="solicitud">Solicitud</SelectItem>
+          <SelectItem value="donacion">Donación</SelectItem>
         </SelectContent>
       </Select>
     </div>
