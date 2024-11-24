@@ -15,7 +15,7 @@ const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 export const PublicationForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [type, setType] = useState<"oferta" | "solicitud">("oferta");
+  const [type, setType] = useState<"oferta" | "solicitud" | "donacion">("oferta");
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
