@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +28,8 @@ export const LoginForm = () => {
         title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente",
       });
+      
+      navigate('/');
     } catch (error) {
       toast({
         variant: "destructive",

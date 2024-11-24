@@ -1,6 +1,6 @@
 import { Button } from "./ui/button";
 import { ShoppingBag, MessageSquare, Upload, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -22,7 +22,6 @@ export const Header = () => {
     };
     getUser();
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", _event, session?.user);
       setUser(session?.user);
@@ -40,11 +39,11 @@ export const Header = () => {
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <Link to="/" className="text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
             Ayuda DANA Valencia
-          </h1>
+          </Link>
           
-          {user && (
+          {user ? (
             <div className="flex items-center gap-4">
               <span className="text-gray-600">Hola, {user.email}</span>
               <DropdownMenu>
@@ -65,6 +64,15 @@ export const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => navigate('/login')}>
+                Iniciar Sesión
+              </Button>
+              <Button onClick={() => navigate('/signup')}>
+                Registrarse
+              </Button>
             </div>
           )}
         </div>
