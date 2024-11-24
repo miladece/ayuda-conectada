@@ -4,22 +4,7 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
   console.log("Checking if first user:", userId);
   
   try {
-    // First create the profile if it doesn't exist
-    const { error: insertError } = await supabase
-      .from('profiles')
-      .upsert({
-        user_id: userId,
-        user_email: userEmail,
-        is_admin: true,
-        banned: false
-      });
-
-    if (insertError) {
-      console.error("Error creating profile:", insertError);
-      return false;
-    }
-
-    // Then check if this is the only profile
+    // Check if any profiles exist
     const { count, error: countError } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true });
@@ -30,7 +15,27 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
     }
 
     console.log("Total profiles:", count);
-    return count === 1;
+
+    // If no profiles exist, create the first admin user
+    if (count === 0) {
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          user_email: userEmail,
+          is_admin: true,
+          banned: false
+        });
+
+      if (insertError) {
+        console.error("Error creating first admin profile:", insertError);
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
   } catch (error) {
     console.error("Error in checkFirstUser:", error);
     return false;
