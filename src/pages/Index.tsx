@@ -5,6 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
@@ -19,30 +20,38 @@ const Index = () => {
 
   const fetchPublications = async () => {
     console.log("Fetching publications with category:", selectedCategory);
-    let query = supabase
-      .from('publications')
-      .select('*')
-      .eq('is_active', true);
-    
-    if (selectedCategory) {
-      query = query.eq('category', selectedCategory);
-    }
+    try {
+      let query = supabase
+        .from('publications')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (selectedCategory) {
+        query = query.eq('category', selectedCategory);
+      }
 
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error("Error fetching publications:", error);
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error("Error fetching publications:", error);
+        throw error;
+      }
+      
+      console.log("Fetched publications:", data);
+      return data;
+    } catch (error) {
+      console.error("Error in fetchPublications:", error);
       throw error;
     }
-    
-    console.log("Fetched publications:", data);
-    return data || [];
   };
 
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ['publications', selectedCategory],
     queryFn: fetchPublications,
-    retry: 2
+    retry: 2,
+    staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (error) {
@@ -81,12 +90,13 @@ const Index = () => {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Cargando publicaciones...</p>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-gray-600">Cargando publicaciones...</span>
           </div>
-        ) : items.length > 0 ? (
+        ) : items && items.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
+            {items.map((item: any) => (
               <ItemCard 
                 key={item.id}
                 type={item.type}
