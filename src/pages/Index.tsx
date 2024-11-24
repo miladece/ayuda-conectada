@@ -1,9 +1,10 @@
 import { Header } from "@/components/Header";
 import { ItemCard } from "@/components/ItemCard";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const { toast } = useToast();
@@ -15,40 +16,43 @@ const Index = () => {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPublications = async () => {
-      try {
-        let query = supabase
-          .from('publications')
-          .select('*');
-        
-        if (selectedCategory) {
-          query = query.eq('category', selectedCategory);
-        }
+  const fetchPublications = async () => {
+    console.log("Fetching publications with category:", selectedCategory);
+    let query = supabase
+      .from('publications')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (selectedCategory) {
+      query = query.eq('category', selectedCategory);
+    }
 
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        
-        console.log("Fetched publications:", data);
-        setItems(data || []);
-      } catch (error) {
-        console.error("Error fetching publications:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar las publicaciones.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error("Error fetching publications:", error);
+      throw error;
+    }
+    
+    console.log("Fetched publications:", data);
+    return data || [];
+  };
 
-    fetchPublications();
-  }, [selectedCategory, toast]);
+  const { data: items = [], isLoading, error } = useQuery({
+    queryKey: ['publications', selectedCategory],
+    queryFn: fetchPublications,
+    retry: 2
+  });
+
+  if (error) {
+    console.error("Query error:", error);
+    toast({
+      title: "Error",
+      description: "No se pudieron cargar las publicaciones.",
+      variant: "destructive",
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,8 +80,10 @@ const Index = () => {
           </div>
         </div>
 
-        {loading ? (
-          <p className="text-center text-gray-600">Cargando publicaciones...</p>
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Cargando publicaciones...</p>
+          </div>
         ) : items.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
@@ -94,7 +100,9 @@ const Index = () => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-600">No hay publicaciones disponibles</p>
+          <div className="text-center py-8">
+            <p className="text-gray-600">No hay publicaciones disponibles</p>
+          </div>
         )}
       </main>
     </div>
