@@ -113,18 +113,18 @@ export const Header = () => {
         </p>
 
         <div className="relative mb-8">
-          <div className="flex items-center max-w-md mx-auto">
+          <div className="flex items-center w-full max-w-3xl mx-auto">
             <Input
               type="text"
               placeholder="Buscar publicaciones..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
+              className="pr-10 w-full"
             />
             <Search className="absolute right-3 h-5 w-5 text-gray-400" />
           </div>
           {searchResults.length > 0 && searchQuery && (
-            <div className="absolute z-10 w-full max-w-md mx-auto mt-2 bg-white rounded-md shadow-lg border">
+            <div className="absolute z-10 w-full max-w-3xl mx-auto mt-2 bg-white rounded-md shadow-lg border">
               {searchResults.map((result) => (
                 <div
                   key={result.id}
