@@ -14,6 +14,7 @@ import {
 export const Header = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
@@ -22,12 +23,35 @@ export const Header = () => {
       const { data: { user } } = await supabase.auth.getUser();
       console.log("Current user in header:", user);
       setUser(user);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .single();
+        
+        console.log("User admin status:", profile?.is_admin);
+        setIsAdmin(profile?.is_admin || false);
+      }
     };
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log("Auth state changed:", _event, session?.user);
       setUser(session?.user);
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        setIsAdmin(profile?.is_admin || false);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -94,9 +118,11 @@ export const Header = () => {
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
                     Mi Perfil
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/admin')}>
-                    Admin Panel
-                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout}>
                     Cerrar Sesión
                   </DropdownMenuItem>
