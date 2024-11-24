@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { UsersList } from "@/components/admin/UsersList";
+import { PostsList } from "@/components/admin/PostsList";
+import { checkFirstUser, checkAdminStatus } from "@/utils/adminUtils";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
@@ -13,10 +15,10 @@ const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAdminStatus();
+    checkAdminAccess();
   }, []);
 
-  const checkAdminStatus = async () => {
+  const checkAdminAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     console.log("Current user:", user);
 
@@ -31,38 +33,17 @@ const Admin = () => {
       return;
     }
 
-    // First, check if the user is the first user (they will be admin)
-    const { count } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
-
-    if (count === 0) {
-      // If this is the first user, make them admin
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          is_admin: true,
-          email: user.email,
-        });
-
-      if (!updateError) {
-        setIsAdmin(true);
-        loadData();
-        return;
-      }
+    // Try to make first user admin
+    const isFirstUserAdmin = await checkFirstUser(user.id, user.email);
+    if (isFirstUserAdmin) {
+      setIsAdmin(true);
+      loadData();
+      return;
     }
 
     // Check if user is admin
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
-
-    console.log("User profile:", profile);
-
-    if (error || !profile?.is_admin) {
+    const isUserAdmin = await checkAdminStatus(user.id);
+    if (!isUserAdmin) {
       console.log("Not an admin, redirecting...");
       toast({
         variant: "destructive",
@@ -113,7 +94,7 @@ const Admin = () => {
     const { error } = await supabase
       .from('profiles')
       .update({ banned: true })
-      .eq('id', userId);
+      .eq('user_id', userId);
 
     if (error) {
       console.error("Error banning user:", error);
@@ -162,47 +143,9 @@ const Admin = () => {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">Panel de Administración</h2>
-        
         <div className="space-y-8">
-          <section>
-            <h3 className="text-xl font-semibold mb-4">Usuarios</h3>
-            <div className="grid gap-4">
-              {users.map((user: any) => (
-                <div key={user.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">{user.email}</p>
-                    <p className="text-sm text-gray-500">ID: {user.id}</p>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleBanUser(user.id)}
-                  >
-                    Banear Usuario
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-xl font-semibold mb-4">Publicaciones</h3>
-            <div className="grid gap-4">
-              {posts.map((post: any) => (
-                <div key={post.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">{post.title}</p>
-                    <p className="text-sm text-gray-500">Por: {post.user_id}</p>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeletePost(post.id)}
-                  >
-                    Eliminar Publicación
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </section>
+          <UsersList users={users} onBanUser={handleBanUser} />
+          <PostsList posts={posts} onDeletePost={handleDeletePost} />
         </div>
       </main>
     </div>
