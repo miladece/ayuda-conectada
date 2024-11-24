@@ -21,7 +21,7 @@ export const Header = () => {
         <div className="flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => navigate("/ofertas")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
             size="lg"
           >
             <ShoppingBag className="w-5 h-5" />
@@ -30,7 +30,7 @@ export const Header = () => {
           
           <Button
             onClick={() => navigate("/solicitudes")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
             size="lg"
           >
             <MessageSquare className="w-5 h-5" />
@@ -39,7 +39,7 @@ export const Header = () => {
           
           <Button
             onClick={() => navigate("/publicar")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
             size="lg"
           >
             <Upload className="w-5 h-5" />
