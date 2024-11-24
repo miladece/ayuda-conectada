@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "./ui/use-toast";
 
 interface ItemCardProps {
   type: "oferta" | "solicitud" | "donacion";
@@ -30,6 +31,8 @@ export const ItemCard = ({
   contact,
   image,
 }: ItemCardProps) => {
+  const { toast } = useToast();
+
   const getBadgeVariant = (type: string) => {
     switch (type) {
       case "oferta":
@@ -63,73 +66,99 @@ export const ItemCard = ({
       status: e.currentTarget.naturalWidth === 0 ? "No image data received" : "Image data corrupted",
       timestamp: new Date().toISOString()
     });
-    
-    if (image.includes('supabase') && image.includes('storage')) {
-      // Try to get a fresh URL from Supabase
-      try {
-        const bucketName = 'images';
-        const filePath = image.split('/').pop(); // Get filename from URL
-        
+
+    // Check if the bucket exists before trying to refresh the URL
+    try {
+      const { data: buckets, error: bucketsError } = await supabase
+        .storage
+        .listBuckets();
+
+      if (bucketsError) {
+        console.error("Error checking buckets:", bucketsError);
+        e.currentTarget.src = '/placeholder.svg';
+        return;
+      }
+
+      const imagesBucket = buckets?.find(b => b.name === 'images');
+      if (!imagesBucket) {
+        console.error("Images bucket not found");
+        toast({
+          title: "Error de almacenamiento",
+          description: "No se pudo cargar la imagen. El bucket de imágenes no existe.",
+          variant: "destructive",
+        });
+        e.currentTarget.src = '/placeholder.svg';
+        return;
+      }
+
+      if (image.includes('supabase') && image.includes('storage')) {
+        const filePath = image.split('/').pop();
         if (filePath) {
           const { data: publicUrl } = supabase.storage
-            .from(bucketName)
+            .from('images')
             .getPublicUrl(filePath);
-            
+
           console.log("Attempting to refresh Supabase URL:", {
             originalUrl: image,
             newUrl: publicUrl.publicUrl,
             timestamp: new Date().toISOString()
           });
-          
+
           e.currentTarget.src = publicUrl.publicUrl;
           return;
         }
-      } catch (error) {
-        console.error("Failed to refresh Supabase URL:", error);
       }
+    } catch (error) {
+      console.error("Failed to refresh Supabase URL:", error);
     }
     
     e.currentTarget.src = '/placeholder.svg';
   };
 
-  // Process image URL
-  const processImageUrl = () => {
+  const processImageUrl = async () => {
     if (!image) return '/placeholder.svg';
     
-    if (image.startsWith('http')) {
-      return image;
-    }
-    
-    // If it's just a filename, assume it's in Supabase storage
-    if (!image.includes('/')) {
-      const { data } = supabase.storage
-        .from('images')
-        .getPublicUrl(image);
-      return data?.publicUrl || '/placeholder.svg';
+    try {
+      if (image.startsWith('http')) {
+        return image;
+      }
+      
+      // Check if bucket exists before trying to get URL
+      const { data: buckets, error: bucketsError } = await supabase
+        .storage
+        .listBuckets();
+
+      if (bucketsError || !buckets?.some(b => b.name === 'images')) {
+        console.error("Images bucket not found or error:", bucketsError);
+        return '/placeholder.svg';
+      }
+
+      // If it's just a filename, assume it's in Supabase storage
+      if (!image.includes('/')) {
+        const { data } = supabase.storage
+          .from('images')
+          .getPublicUrl(image);
+        return data?.publicUrl || '/placeholder.svg';
+      }
+    } catch (error) {
+      console.error("Error processing image URL:", error);
     }
     
     return '/placeholder.svg';
   };
 
-  const imageUrl = processImageUrl();
-  console.log("Processed image URL:", {
-    originalImage: image,
-    processedUrl: imageUrl,
-    timestamp: new Date().toISOString()
-  });
-
   return (
     <Card className="card-hover">
       <div className="relative w-full h-48 bg-gray-50 rounded-t-lg overflow-hidden">
         <img
-          src={imageUrl}
+          src={image}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
           onError={handleImageError}
           loading="lazy"
           onLoad={() => {
             console.log("Image loaded successfully:", {
-              url: imageUrl,
+              url: image,
               title,
               timestamp: new Date().toISOString()
             });
