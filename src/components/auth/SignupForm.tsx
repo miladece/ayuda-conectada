@@ -9,6 +9,7 @@ export const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -17,20 +18,25 @@ export const SignupForm = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`
+        }
       });
 
       if (error) throw error;
 
-      toast({
-        title: "¡Registro exitoso!",
-        description: "Por favor, verifica tu correo electrónico para activar tu cuenta.",
-      });
+      console.log("Signup response:", data);
+      setVerificationSent(true);
       
-      navigate('/');
+      toast({
+        title: "¡Registro iniciado!",
+        description: "Por favor, revisa tu correo electrónico para verificar tu cuenta antes de iniciar sesión.",
+      });
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         variant: "destructive",
         title: "Error al registrarse",
@@ -40,6 +46,21 @@ export const SignupForm = () => {
       setLoading(false);
     }
   };
+
+  if (verificationSent) {
+    return (
+      <div className="text-center space-y-4">
+        <h3 className="text-lg font-medium">¡Revisa tu correo electrónico!</h3>
+        <p className="text-gray-600">
+          Te hemos enviado un enlace de verificación a {email}. 
+          Por favor, verifica tu correo electrónico antes de iniciar sesión.
+        </p>
+        <Button onClick={() => navigate('/login')} className="mt-4">
+          Ir a Iniciar Sesión
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSignup} className="space-y-4">
