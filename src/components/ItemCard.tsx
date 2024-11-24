@@ -55,13 +55,19 @@ export const ItemCard = ({
     }
   };
 
+  console.log("Rendering ItemCard with image:", image);
+
   return (
     <Card className="card-hover">
-      <div className="relative bg-gray-50 rounded-t-lg" style={{ paddingTop: '75%' }}>
+      <div className="relative w-full h-48 bg-gray-50 rounded-t-lg overflow-hidden">
         <img
           src={image}
           alt={title}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            console.error("Error loading image:", image);
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
       </div>
       
