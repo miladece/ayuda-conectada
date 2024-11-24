@@ -34,7 +34,7 @@ const Admin = () => {
     },
     enabled: isAdmin,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0  // Don't cache results
+    gcTime: 0  // Don't cache results
   });
 
   // Fetch publications data with no caching
@@ -57,7 +57,7 @@ const Admin = () => {
     },
     enabled: isAdmin,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0  // Don't cache results
+    gcTime: 0  // Don't cache results
   });
 
   useEffect(() => {
