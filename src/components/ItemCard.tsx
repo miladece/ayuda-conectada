@@ -2,6 +2,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { MapPin, Phone } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 
 interface ItemCardProps {
   type: "oferta" | "solicitud";
@@ -53,10 +60,33 @@ export const ItemCard = ({
       </CardContent>
       
       <CardFooter>
-        <Button className="w-full flex items-center gap-2">
-          <Phone className="w-4 h-4" />
-          Contactar
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Contactar
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Información de contacto</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Publicación</h4>
+                <p className="text-sm text-gray-500">{title}</p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Ubicación</h4>
+                <p className="text-sm text-gray-500">{location}</p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Contacto</h4>
+                <p className="text-sm text-gray-500">{contact}</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardFooter>
     </Card>
   );
