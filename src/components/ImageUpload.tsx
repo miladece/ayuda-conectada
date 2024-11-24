@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Upload, X } from "lucide-react";
 
@@ -8,9 +8,9 @@ interface ImageUploadProps {
 
 export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFile = useCallback((file: File) => {
     if (!file) return;
 
     // Check file type
@@ -74,17 +74,56 @@ export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
       );
     };
     img.src = URL.createObjectURL(file);
-  };
+  }, [onImageSelected]);
 
-  const handleRemove = () => {
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+  }, [handleFile]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+  }, [handleFile]);
+
+  const handleRemove = useCallback(() => {
     setPreview(null);
     onImageSelected(null);
-  };
+  }, [onImageSelected]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-center w-full">
-        <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+      <div 
+        className="relative flex items-center justify-center w-full"
+        onDragEnter={handleDrag}
+      >
+        <label 
+          className={`flex flex-col items-center justify-center w-full h-64 border-2 ${
+            dragActive ? 'border-primary border-solid' : 'border-gray-300 border-dashed'
+          } rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors`}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
+        >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <Upload className="w-8 h-8 mb-4 text-gray-500" />
             <p className="mb-2 text-sm text-gray-500">
@@ -102,11 +141,11 @@ export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
       </div>
 
       {preview && (
-        <div className="relative">
+        <div className="relative w-full h-48">
           <img
             src={preview}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg"
+            className="w-full h-full object-contain rounded-lg"
           />
           <Button
             variant="destructive"
