@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { supabase } from "@/lib/supabase";
 
 interface ItemCardProps {
   type: "oferta" | "solicitud" | "donacion";
@@ -55,7 +56,7 @@ export const ItemCard = ({
     }
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = async (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error("Image failed to load:", {
       imageUrl: image,
       error: "Loading failed - falling back to placeholder",
@@ -64,22 +65,53 @@ export const ItemCard = ({
     });
     
     if (image.includes('supabase') && image.includes('storage')) {
-      console.error("Supabase storage issue detected - check bucket configuration and policies");
+      // Try to get a fresh URL from Supabase
+      try {
+        const bucketName = 'images';
+        const filePath = image.split('/').pop(); // Get filename from URL
+        
+        if (filePath) {
+          const { data: publicUrl } = supabase.storage
+            .from(bucketName)
+            .getPublicUrl(filePath);
+            
+          console.log("Attempting to refresh Supabase URL:", {
+            originalUrl: image,
+            newUrl: publicUrl.publicUrl,
+            timestamp: new Date().toISOString()
+          });
+          
+          e.currentTarget.src = publicUrl.publicUrl;
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to refresh Supabase URL:", error);
+      }
     }
     
     e.currentTarget.src = '/placeholder.svg';
   };
 
-  // Add logging when component renders
-  console.log("ItemCard render:", {
-    type,
-    title,
-    imageUrl: image,
-    timestamp: new Date().toISOString()
-  });
+  // Process image URL
+  const processImageUrl = () => {
+    if (!image) return '/placeholder.svg';
+    
+    if (image.startsWith('http')) {
+      return image;
+    }
+    
+    // If it's just a filename, assume it's in Supabase storage
+    if (!image.includes('/')) {
+      const { data } = supabase.storage
+        .from('images')
+        .getPublicUrl(image);
+      return data?.publicUrl || '/placeholder.svg';
+    }
+    
+    return '/placeholder.svg';
+  };
 
-  // Add logging for image URL processing
-  const imageUrl = image?.startsWith('http') ? image : `/placeholder.svg`;
+  const imageUrl = processImageUrl();
   console.log("Processed image URL:", {
     originalImage: image,
     processedUrl: imageUrl,
