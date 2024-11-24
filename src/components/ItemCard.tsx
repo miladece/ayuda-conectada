@@ -55,19 +55,36 @@ export const ItemCard = ({
     }
   };
 
-  console.log("Rendering ItemCard with image:", image);
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error("Error loading image:", {
+      src: image,
+      error: "Image failed to load",
+      element: e.currentTarget
+    });
+    
+    // Check if the error is due to a Supabase storage issue
+    if (image.includes('supabase') && image.includes('storage')) {
+      console.error("Possible Supabase storage configuration issue. Please check bucket permissions and policies.");
+    }
+    
+    e.currentTarget.src = '/placeholder.svg';
+  };
+
+  console.log("ItemCard render:", {
+    type,
+    title,
+    imageUrl: image,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <Card className="card-hover">
       <div className="relative w-full h-48 bg-gray-50 rounded-t-lg overflow-hidden">
         <img
-          src={image}
+          src={image || '/placeholder.svg'}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            console.error("Error loading image:", image);
-            e.currentTarget.src = '/placeholder.svg';
-          }}
+          onError={handleImageError}
         />
       </div>
       
