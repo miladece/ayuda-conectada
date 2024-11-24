@@ -10,57 +10,54 @@ interface ImageWithFallbackProps {
 
 export const ImageWithFallback = ({ src, alt, onLoad }: ImageWithFallbackProps) => {
   const { toast } = useToast();
-  const [imgSrc, setImgSrc] = useState<string>(src);
+  const [imgSrc, setImgSrc] = useState<string>('');
 
   useEffect(() => {
-    setImgSrc(src);
-  }, [src]);
-
-  const handleError = async () => {
-    console.error("Image failed to load:", {
-      imageUrl: src,
-      error: "Loading failed - falling back to placeholder",
-      status: "Image load error",
-      timestamp: new Date().toISOString()
-    });
-
-    try {
-      const { data: buckets, error: bucketsError } = await supabase
-        .storage
-        .listBuckets();
-
-      if (bucketsError || !buckets?.some(b => b.name === 'images')) {
-        console.error("Images bucket not found or error:", bucketsError);
-        toast({
-          title: "Error de almacenamiento",
-          description: "No se pudo cargar la imagen. El bucket de imágenes no existe.",
-          variant: "destructive",
-        });
+    const loadImage = async () => {
+      console.log("Loading image:", src);
+      
+      if (!src) {
         setImgSrc('/placeholder.svg');
         return;
       }
 
-      if (src.includes('supabase') && src.includes('storage')) {
-        const filePath = src.split('/').pop();
-        if (filePath) {
-          const { data: publicUrl } = supabase.storage
-            .from('images')
-            .getPublicUrl(filePath);
-
-          console.log("Attempting to refresh Supabase URL:", {
-            originalUrl: src,
-            newUrl: publicUrl.publicUrl,
-            timestamp: new Date().toISOString()
-          });
-
-          setImgSrc(publicUrl.publicUrl);
-          return;
+      try {
+        // If it's a Supabase URL, get a fresh public URL
+        if (src.includes('supabase.co')) {
+          const fileName = src.split('/').pop();
+          if (fileName) {
+            const { data } = supabase.storage
+              .from('images')
+              .getPublicUrl(fileName);
+            
+            console.log("Generated fresh Supabase URL:", {
+              originalUrl: src,
+              newUrl: data.publicUrl,
+              timestamp: new Date().toISOString()
+            });
+            
+            setImgSrc(data.publicUrl + '?t=' + new Date().getTime());
+            return;
+          }
         }
+        
+        // For other URLs, use as is
+        setImgSrc(src);
+      } catch (error) {
+        console.error("Error processing image URL:", error);
+        setImgSrc('/placeholder.svg');
       }
-    } catch (error) {
-      console.error("Failed to refresh Supabase URL:", error);
-    }
-    
+    };
+
+    loadImage();
+  }, [src]);
+
+  const handleError = () => {
+    console.error("Image failed to load:", {
+      imageUrl: imgSrc,
+      error: "Loading failed - falling back to placeholder",
+      timestamp: new Date().toISOString()
+    });
     setImgSrc('/placeholder.svg');
   };
 

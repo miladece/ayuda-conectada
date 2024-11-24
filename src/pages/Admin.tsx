@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,14 +14,15 @@ const Admin = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch users data
+  // Fetch users data with no caching
   const { data: users = [], refetch: refetchUsers } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
       console.log("Fetching users data...");
       const { data, error } = await supabase
         .from('profiles')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching users:", error);
@@ -31,17 +32,20 @@ const Admin = () => {
       console.log("Fetched users:", data);
       return data || [];
     },
-    enabled: isAdmin
+    enabled: isAdmin,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0  // Don't cache results
   });
 
-  // Fetch publications data
+  // Fetch publications data with no caching
   const { data: publications = [], refetch: refetchPublications } = useQuery({
     queryKey: ['adminPublications'],
     queryFn: async () => {
       console.log("Fetching publications data...");
       const { data, error } = await supabase
         .from('publications')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching publications:", error);
@@ -51,7 +55,9 @@ const Admin = () => {
       console.log("Fetched publications:", data);
       return data || [];
     },
-    enabled: isAdmin
+    enabled: isAdmin,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0  // Don't cache results
   });
 
   useEffect(() => {
@@ -114,7 +120,8 @@ const Admin = () => {
         title: "Publicación eliminada",
         description: "La publicación ha sido eliminada correctamente",
       });
-      refetchPublications();
+      await refetchPublications();
+      queryClient.invalidateQueries({ queryKey: ['publications'] });
     }
   };
 
@@ -136,7 +143,7 @@ const Admin = () => {
         title: "Usuario baneado",
         description: "El usuario ha sido baneado correctamente",
       });
-      refetchUsers();
+      await refetchUsers();
     }
   };
 
