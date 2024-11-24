@@ -40,7 +40,11 @@ export const Header = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <Link to="/" className="flex items-center gap-2 text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
-            <img src="/valencia-flag.svg" alt="Valencia Flag" className="w-8 h-8" />
+            <img 
+              src="/valencia-flag.svg" 
+              alt="Valencia Flag" 
+              className="w-12 h-8 object-contain" 
+            />
             Ayuda DANA Valencia
           </Link>
           
