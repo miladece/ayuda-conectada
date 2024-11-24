@@ -11,7 +11,7 @@ import {
 } from "./ui/dialog";
 
 interface ItemCardProps {
-  type: "oferta" | "solicitud";
+  type: "oferta" | "solicitud" | "donacion";
   category: string;
   title: string;
   location: string;
@@ -29,6 +29,32 @@ export const ItemCard = ({
   contact,
   image,
 }: ItemCardProps) => {
+  const getBadgeVariant = (type: string) => {
+    switch (type) {
+      case "oferta":
+        return "default";
+      case "solicitud":
+        return "secondary";
+      case "donacion":
+        return "success";
+      default:
+        return "default";
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "oferta":
+        return "Oferta";
+      case "solicitud":
+        return "Solicitud";
+      case "donacion":
+        return "Donación";
+      default:
+        return type;
+    }
+  };
+
   return (
     <Card className="card-hover">
       <div className="relative h-48">
@@ -42,8 +68,8 @@ export const ItemCard = ({
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl font-semibold">{title}</CardTitle>
-          <Badge variant={type === "oferta" ? "default" : "secondary"}>
-            {type === "oferta" ? "Oferta" : "Solicitud"}
+          <Badge variant={getBadgeVariant(type)}>
+            {getTypeLabel(type)}
           </Badge>
         </div>
         <Badge variant="outline" className="w-fit">

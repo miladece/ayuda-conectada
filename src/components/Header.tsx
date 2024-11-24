@@ -39,11 +39,12 @@ export const Header = () => {
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
-          <Link to="/" className="flex items-center gap-2 text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
+          <Link to="/" className="flex items-center gap-4 text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
             <img 
               src="/valencia-flag.svg" 
               alt="Valencia Flag" 
-              className="w-12 h-8 object-contain" 
+              className="w-16 h-10" 
+              style={{ objectFit: 'cover' }}
             />
             Ayuda DANA Valencia
           </Link>
@@ -104,6 +105,15 @@ export const Header = () => {
           >
             <MessageSquare className="w-5 h-5" />
             Ver Solicitudes
+          </Button>
+
+          <Button
+            onClick={() => navigate("/donaciones")}
+            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
+            size="lg"
+          >
+            <Upload className="w-5 h-5" />
+            Ver Donaciones
           </Button>
           
           <Button

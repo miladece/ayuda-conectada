@@ -7,6 +7,7 @@ import { Footer } from "./components/Footer";
 import Index from "./pages/Index";
 import Ofertas from "./pages/Ofertas";
 import Solicitudes from "./pages/Solicitudes";
+import Donaciones from "./pages/Donaciones";
 import Publicar from "./pages/Publicar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/ofertas" element={<Ofertas />} />
             <Route path="/solicitudes" element={<Solicitudes />} />
+            <Route path="/donaciones" element={<Donaciones />} />
             <Route path="/publicar" element={<Publicar />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
