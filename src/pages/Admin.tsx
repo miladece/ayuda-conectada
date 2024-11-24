@@ -20,15 +20,49 @@ const Admin = () => {
     const { data: { user } } = await supabase.auth.getUser();
     console.log("Current user:", user);
 
+    if (!user) {
+      console.log("No user found, redirecting...");
+      toast({
+        variant: "destructive",
+        title: "Acceso denegado",
+        description: "Debes iniciar sesión primero",
+      });
+      navigate('/login');
+      return;
+    }
+
+    // First, check if the user is the first user (they will be admin)
+    const { count } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    if (count === 0) {
+      // If this is the first user, make them admin
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          is_admin: true,
+          email: user.email,
+        });
+
+      if (!updateError) {
+        setIsAdmin(true);
+        loadData();
+        return;
+      }
+    }
+
+    // Check if user is admin
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('role')
-      .eq('id', user?.id)
+      .select('is_admin')
+      .eq('id', user.id)
       .single();
 
     console.log("User profile:", profile);
 
-    if (error || profile?.role !== 'admin') {
+    if (error || !profile?.is_admin) {
       console.log("Not an admin, redirecting...");
       toast({
         variant: "destructive",
