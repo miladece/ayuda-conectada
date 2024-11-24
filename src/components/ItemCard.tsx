@@ -58,7 +58,8 @@ export const ItemCard = ({
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error("Image failed to load:", {
       imageUrl: image,
-      error: "Loading failed - falling back to placeholder"
+      error: "Loading failed - falling back to placeholder",
+      status: e.currentTarget.naturalWidth === 0 ? "No image data received" : "Image data corrupted"
     });
     
     if (image.includes('supabase') && image.includes('storage')) {
@@ -75,14 +76,17 @@ export const ItemCard = ({
     timestamp: new Date().toISOString()
   });
 
+  const imageUrl = image?.startsWith('http') ? image : `/placeholder.svg`;
+
   return (
     <Card className="card-hover">
       <div className="relative w-full h-48 bg-gray-50 rounded-t-lg overflow-hidden">
         <img
-          src={image || '/placeholder.svg'}
+          src={imageUrl}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
           onError={handleImageError}
+          loading="lazy"
         />
       </div>
       
