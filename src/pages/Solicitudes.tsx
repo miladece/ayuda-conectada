@@ -12,28 +12,7 @@ const Solicitudes = () => {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Example requests - in a real app, these would come from an API
-  const items = [
-    {
-      type: "solicitud" as const,
-      category: "Electrodomésticos",
-      title: "Necesito nevera",
-      location: "Nazaret",
-      description: "Familia afectada por la DANA necesita nevera urgentemente.",
-      contact: "678912345",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    },
-    {
-      type: "solicitud" as const,
-      category: "Muebles",
-      title: "Necesito camas",
-      location: "Valencia Centro",
-      description: "Necesitamos 2 camas individuales para niños.",
-      contact: "654321987",
-      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-    },
-  ];
+  const items = []; // Empty array instead of dummy data
 
   const filteredItems = selectedCategory
     ? items.filter((item) => item.category === selectedCategory)

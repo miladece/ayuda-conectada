@@ -12,28 +12,7 @@ const Ofertas = () => {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Example offers - in a real app, these would come from an API
-  const items = [
-    {
-      type: "oferta" as const,
-      category: "Muebles",
-      title: "Sofá en buen estado",
-      location: "Valencia Centro",
-      description: "Sofá de 3 plazas en buen estado. Disponible para recoger.",
-      contact: "654321987",
-      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-    },
-    {
-      type: "oferta" as const,
-      category: "Electrodomésticos",
-      title: "Lavadora seminueva",
-      location: "Nazaret",
-      description: "Lavadora de 6 meses de uso. Perfecto estado.",
-      contact: "678912345",
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    },
-  ];
+  const items = []; // Empty array instead of dummy data
 
   const filteredItems = selectedCategory
     ? items.filter((item) => item.category === selectedCategory)
