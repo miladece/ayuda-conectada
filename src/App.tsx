@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Ofertas from "./pages/Ofertas";
 import Solicitudes from "./pages/Solicitudes";
 import Publicar from "./pages/Publicar";
+import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
             <Route path="/ofertas" element={<Ofertas />} />
             <Route path="/solicitudes" element={<Solicitudes />} />
             <Route path="/publicar" element={<Publicar />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </BrowserRouter>
         <Footer />
