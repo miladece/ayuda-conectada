@@ -5,7 +5,11 @@ import { UserMenu } from "./header/UserMenu";
 import { SearchBar } from "./header/SearchBar";
 import { NavigationButtons } from "./header/NavigationButtons";
 
-export const Header = () => {
+interface HeaderProps {
+  hideNavigation?: boolean;
+}
+
+export const Header = ({ hideNavigation = false }: HeaderProps) => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -58,13 +62,17 @@ export const Header = () => {
           <UserMenu user={user} isAdmin={isAdmin} />
         </div>
         
-        <p className="text-gray-600 max-w-4xl mx-auto text-center mb-8">
-          Conectando a los afectados por las inundaciones de la DANA en Valencia con recursos esenciales. 
-          Juntos podemos ayudar a reconstruir nuestra comunidad. El poble salva el poble.
-        </p>
+        {!hideNavigation && (
+          <>
+            <p className="text-gray-600 max-w-4xl mx-auto text-center mb-8">
+              Conectando a los afectados por las inundaciones de la DANA en Valencia con recursos esenciales. 
+              Juntos podemos ayudar a reconstruir nuestra comunidad. El poble salva el poble.
+            </p>
 
-        <SearchBar />
-        <NavigationButtons />
+            <SearchBar />
+            <NavigationButtons />
+          </>
+        )}
       </div>
     </header>
   );

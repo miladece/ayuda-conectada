@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
@@ -16,10 +16,19 @@ interface UserMenuProps {
 
 export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login');
+  };
+
+  const handleSignup = () => {
+    navigate('/signup');
+    // Wait for navigation to complete before scrolling
+    setTimeout(() => {
+      document.getElementById('signup-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   if (!user) {
@@ -28,7 +37,7 @@ export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
         <Button variant="outline" onClick={() => navigate('/login')}>
           Iniciar Sesión
         </Button>
-        <Button onClick={() => navigate('/signup')}>
+        <Button onClick={handleSignup}>
           Registrarse
         </Button>
       </div>
