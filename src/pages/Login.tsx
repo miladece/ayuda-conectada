@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header hideNavigation />
@@ -13,18 +13,11 @@ const Login = () => {
         <div className="max-w-md mx-auto space-y-6">
           <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2>
           <LoginForm />
-          
           <div className="text-center space-y-4">
             <p className="text-gray-600">¿No tienes una cuenta?</p>
             <Button 
               variant="outline" 
-              onClick={() => {
-                navigate('/signup');
-                // Wait for navigation to complete before scrolling
-                setTimeout(() => {
-                  document.getElementById('signup-form')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
+              onClick={() => navigate('/signup')}
               className="w-full"
             >
               Registrarse
