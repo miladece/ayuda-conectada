@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { ShoppingBag, MessageSquare, Upload, User, Flag } from "lucide-react";
+import { ShoppingBag, MessageSquare, Upload, User } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -40,7 +40,7 @@ export const Header = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <Link to="/" className="flex items-center gap-2 text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
-            <Flag className="w-8 h-8 text-[#CD0B0B]" />
+            <img src="/valencia-flag.svg" alt="Valencia Flag" className="w-8 h-8" />
             Ayuda DANA Valencia
           </Link>
           
