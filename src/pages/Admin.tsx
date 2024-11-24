@@ -3,19 +3,73 @@ import { Header } from "@/components/Header";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
+    checkAdminStatus();
   }, []);
 
+  const checkAdminStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log("Current user:", user);
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user?.id)
+      .single();
+
+    console.log("User profile:", profile);
+
+    if (error || profile?.role !== 'admin') {
+      console.log("Not an admin, redirecting...");
+      toast({
+        variant: "destructive",
+        title: "Acceso denegado",
+        description: "No tienes permisos de administrador",
+      });
+      navigate('/');
+      return;
+    }
+
+    setIsAdmin(true);
+    loadData();
+  };
+
   const loadData = async () => {
-    const { data: usersData } = await supabase.from('users').select('*');
-    const { data: postsData } = await supabase.from('posts').select('*');
+    console.log("Loading admin data...");
+    const { data: usersData, error: usersError } = await supabase
+      .from('profiles')
+      .select('*');
+    
+    const { data: postsData, error: postsError } = await supabase
+      .from('posts')
+      .select('*');
+    
+    if (usersError) {
+      console.error("Error loading users:", usersError);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar los usuarios",
+      });
+    }
+
+    if (postsError) {
+      console.error("Error loading posts:", postsError);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar las publicaciones",
+      });
+    }
     
     if (usersData) setUsers(usersData);
     if (postsData) setPosts(postsData);
@@ -23,11 +77,12 @@ const Admin = () => {
 
   const handleBanUser = async (userId: string) => {
     const { error } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ banned: true })
       .eq('id', userId);
 
     if (error) {
+      console.error("Error banning user:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -49,6 +104,7 @@ const Admin = () => {
       .eq('id', postId);
 
     if (error) {
+      console.error("Error deleting post:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -62,6 +118,10 @@ const Admin = () => {
       loadData();
     }
   };
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
