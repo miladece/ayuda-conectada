@@ -1,22 +1,13 @@
-import { Button } from "./ui/button";
-import { ShoppingBag, MessageSquare, Upload, User, Gift, Home, Search } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Input } from "./ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { UserMenu } from "./header/UserMenu";
+import { SearchBar } from "./header/SearchBar";
+import { NavigationButtons } from "./header/NavigationButtons";
 
 export const Header = () => {
-  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -57,46 +48,6 @@ export const Header = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const searchPublications = async () => {
-      if (searchQuery.trim() === "") {
-        setSearchResults([]);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('publications')
-          .select('*')
-          .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
-          .limit(10);
-
-        if (error) throw error;
-        
-        console.log("Search results:", data);
-        setSearchResults(data || []);
-      } catch (error) {
-        console.error("Error searching publications:", error);
-      }
-    };
-
-    const debounceTimeout = setTimeout(searchPublications, 300);
-    return () => clearTimeout(debounceTimeout);
-  }, [searchQuery]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
-
-  const handleSearchResultClick = (result: any) => {
-    // Determine the route based on the publication type
-    const route = `/${result.type}s`; // adds 's' to make plural (ofertas, solicitudes, donaciones)
-    setSearchQuery(""); // Clear the search
-    setSearchResults([]); // Clear results
-    navigate(route, { state: { highlightId: result.id } }); // Pass the ID to highlight the specific item
-  };
-
   return (
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4 py-6">
@@ -104,41 +55,7 @@ export const Header = () => {
           <Link to="/" className="text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
             Ayuda DANA Valencia
           </Link>
-          
-          {user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600">Hola, {user.email}</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    Mi Perfil
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      Admin Panel
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Cerrar Sesión
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={() => navigate('/login')}>
-                Iniciar Sesión
-              </Button>
-              <Button onClick={() => navigate('/signup')}>
-                Registrarse
-              </Button>
-            </div>
-          )}
+          <UserMenu user={user} isAdmin={isAdmin} />
         </div>
         
         <p className="text-gray-600 max-w-4xl mx-auto text-center mb-8">
@@ -146,79 +63,8 @@ export const Header = () => {
           Juntos podemos ayudar a reconstruir nuestra comunidad. El poble salva el poble.
         </p>
 
-        <div className="relative mb-8">
-          <div className="flex items-center w-full max-w-3xl mx-auto">
-            <Input
-              type="text"
-              placeholder="Buscar publicaciones..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10 w-full"
-            />
-            <Search className="absolute right-3 h-5 w-5 text-gray-400" />
-          </div>
-          {searchResults.length > 0 && searchQuery && (
-            <div className="absolute z-10 w-full max-w-3xl mx-auto mt-2 bg-white rounded-md shadow-lg border">
-              {searchResults.map((result) => (
-                <div
-                  key={result.id}
-                  className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                  onClick={() => handleSearchResultClick(result)}
-                >
-                  <h3 className="font-medium">{result.title}</h3>
-                  <p className="text-sm text-gray-600 truncate">{result.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        <div className="flex flex-wrap justify-center gap-4">
-          <Button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
-            size="lg"
-          >
-            <Home className="w-5 h-5" />
-            Ver Todo
-          </Button>
-
-          <Button
-            onClick={() => navigate("/ofertas")}
-            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
-            size="lg"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            Ver Ofertas
-          </Button>
-          
-          <Button
-            onClick={() => navigate("/solicitudes")}
-            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
-            size="lg"
-          >
-            <MessageSquare className="w-5 h-5" />
-            Ver Solicitudes
-          </Button>
-
-          <Button
-            onClick={() => navigate("/donaciones")}
-            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
-            size="lg"
-          >
-            <Gift className="w-5 h-5" />
-            Ver Donaciones
-          </Button>
-          
-          <Button
-            onClick={() => navigate("/publicar")}
-            className="flex items-center gap-2 bg-[#FF4F4F] hover:bg-[#E63E3E]"
-            size="lg"
-          >
-            <Upload className="w-5 h-5" />
-            Publicar
-          </Button>
-        </div>
+        <SearchBar />
+        <NavigationButtons />
       </div>
     </header>
   );
