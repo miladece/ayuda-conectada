@@ -29,6 +29,7 @@ export const PublicationForm = () => {
   const [image, setImage] = useState<File | null>(null);
   const [captchaValue, setCaptchaValue] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -51,12 +52,19 @@ export const PublicationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     if (!user) {
       toast({
         title: "Error",
         description: "Debes iniciar sesión para publicar un anuncio.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
       navigate('/login');
       return;
     }
@@ -67,28 +75,56 @@ export const PublicationForm = () => {
         description: "Por favor, completa el captcha antes de continuar.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
       return;
     }
 
     try {
       let imageUrl = null;
       if (image) {
+        console.log("Starting image upload process");
         const fileExt = image.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
+        
+        // Check if bucket exists and is accessible
+        const { data: bucketData, error: bucketError } = await supabase
+          .storage
+          .getBucket('images');
+          
+        if (bucketError) {
+          console.error("Error accessing bucket:", bucketError);
+          throw new Error("Error accessing storage bucket");
+        }
+        
+        console.log("Uploading file:", fileName);
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('images')
-          .upload(fileName, image);
+          .upload(fileName, image, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw uploadError;
+        }
         
-        const { data: { publicUrl } } = supabase.storage
+        console.log("File uploaded successfully:", uploadData);
+        
+        const { data: { publicUrl }, error: urlError } = supabase.storage
           .from('images')
           .getPublicUrl(fileName);
           
+        if (urlError) {
+          console.error("Error getting public URL:", urlError);
+          throw urlError;
+        }
+        
+        console.log("Got public URL:", publicUrl);
         imageUrl = publicUrl;
       }
 
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('publications')
         .insert([
           {
@@ -103,7 +139,7 @@ export const PublicationForm = () => {
           }
         ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
         title: "Anuncio publicado",
@@ -125,15 +161,12 @@ export const PublicationForm = () => {
       console.error("Error publishing:", error);
       toast({
         title: "Error",
-        description: "Error al publicar el anuncio. Por favor, inténtalo de nuevo.",
+        description: error.message || "Error al publicar el anuncio. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const handleCaptchaChange = (value: string | null) => {
-    console.log("Captcha value:", value);
-    setCaptchaValue(value);
   };
 
   return (
@@ -221,8 +254,8 @@ export const PublicationForm = () => {
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        Publicar Anuncio
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Publicando..." : "Publicar Anuncio"}
       </Button>
     </form>
   );
