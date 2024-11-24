@@ -56,15 +56,13 @@ export const ItemCard = ({
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error("Error loading image:", {
-      src: image,
-      error: "Image failed to load",
-      element: e.currentTarget
+    console.error("Image failed to load:", {
+      imageUrl: image,
+      error: "Loading failed - falling back to placeholder"
     });
     
-    // Check if the error is due to a Supabase storage issue
     if (image.includes('supabase') && image.includes('storage')) {
-      console.error("Possible Supabase storage configuration issue. Please check bucket permissions and policies.");
+      console.error("Supabase storage issue detected - check bucket configuration and policies");
     }
     
     e.currentTarget.src = '/placeholder.svg';
