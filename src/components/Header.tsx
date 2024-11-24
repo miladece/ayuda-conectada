@@ -107,7 +107,7 @@ export const Header = () => {
           )}
         </div>
         
-        <p className="text-gray-600 max-w-2xl mx-auto text-center mb-8">
+        <p className="text-gray-600 max-w-4xl mx-auto text-center mb-8">
           Conectando a los afectados por las inundaciones de la DANA en Valencia con recursos esenciales. 
           Juntos podemos ayudar a reconstruir nuestra comunidad. El poble salva el poble.
         </p>
