@@ -19,7 +19,12 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const fetchPublications = async () => {
-    console.log("Fetching publications with category:", selectedCategory);
+    console.log("Starting fetchPublications:", {
+      timestamp: new Date().toISOString(),
+      browser: navigator.userAgent,
+      selectedCategory
+    });
+
     try {
       let query = supabase
         .from('publications')
@@ -31,17 +36,34 @@ const Index = () => {
         query = query.eq('category', selectedCategory);
       }
 
+      console.log("Executing Supabase query:", {
+        timestamp: new Date().toISOString(),
+        queryDetails: query.toSQL ? query.toSQL() : 'Query details not available'
+      });
+
       const { data, error } = await query;
       
       if (error) {
-        console.error("Error fetching publications:", error);
+        console.error("Supabase query error:", {
+          error,
+          timestamp: new Date().toISOString()
+        });
         throw error;
       }
       
-      console.log("Fetched publications:", data);
+      console.log("Publications fetched successfully:", {
+        count: data?.length || 0,
+        firstItem: data?.[0],
+        timestamp: new Date().toISOString()
+      });
+
       return data;
     } catch (error) {
-      console.error("Error in fetchPublications:", error);
+      console.error("Error in fetchPublications:", {
+        error,
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
       throw error;
     }
   };
@@ -55,13 +77,24 @@ const Index = () => {
   });
 
   if (error) {
-    console.error("Query error:", error);
+    console.error("Query error:", {
+      error,
+      timestamp: new Date().toISOString()
+    });
     toast({
       title: "Error",
       description: "No se pudieron cargar las publicaciones.",
       variant: "destructive",
     });
   }
+
+  // Log whenever items change
+  console.log("Items state updated:", {
+    itemsLength: items?.length || 0,
+    isLoading,
+    hasError: !!error,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
