@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export const SignupForm = () => {
   const [verificationSent, setVerificationSent] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,11 +21,15 @@ export const SignupForm = () => {
 
     try {
       console.log("Starting signup process");
+      
+      // Clear any existing auth state and cached queries
+      await supabase.auth.signOut();
+      queryClient.clear();
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // Remove /auth/confirm from redirect URL to match Supabase's default behavior
           emailRedirectTo: window.location.origin
         }
       });
