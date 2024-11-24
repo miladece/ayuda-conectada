@@ -10,6 +10,7 @@ interface ItemCardProps {
   location: string;
   description: string;
   contact: string;
+  image: string;
 }
 
 export const ItemCard = ({
@@ -19,9 +20,18 @@ export const ItemCard = ({
   location,
   description,
   contact,
+  image,
 }: ItemCardProps) => {
   return (
     <Card className="card-hover">
+      <div className="relative h-48">
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover rounded-t-lg"
+        />
+      </div>
+      
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl font-semibold">{title}</CardTitle>
