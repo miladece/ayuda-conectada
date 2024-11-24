@@ -15,6 +15,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: localStorage,
     storageKey: 'supabase.auth.token',
     flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    }
   }
 });
 
