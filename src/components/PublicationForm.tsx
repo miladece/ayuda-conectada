@@ -11,6 +11,9 @@ import {
 } from "./ui/select";
 import { ImageUpload } from "./ImageUpload";
 import { useToast } from "./ui/use-toast";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"; // This is Google's test key. Replace with your actual key in production.
 
 export const PublicationForm = () => {
   const { toast } = useToast();
@@ -21,16 +24,40 @@ export const PublicationForm = () => {
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", { type, category, title, location, description, contact, image });
     
-    // Here you would typically upload the image and form data to your backend
+    if (!captchaValue) {
+      toast({
+        title: "Error",
+        description: "Por favor, completa el captcha antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Form submitted:", { 
+      type, 
+      category, 
+      title, 
+      location, 
+      description, 
+      contact, 
+      image,
+      captchaValue 
+    });
+    
     toast({
       title: "Anuncio publicado",
       description: "Tu anuncio ha sido publicado correctamente.",
     });
+  };
+
+  const handleCaptchaChange = (value: string | null) => {
+    console.log("Captcha value:", value);
+    setCaptchaValue(value);
   };
 
   return (
@@ -109,6 +136,13 @@ export const PublicationForm = () => {
       <div className="space-y-2">
         <label className="text-sm font-medium">Imagen</label>
         <ImageUpload onImageSelected={setImage} />
+      </div>
+
+      <div className="flex justify-center my-4">
+        <ReCAPTCHA
+          sitekey={RECAPTCHA_SITE_KEY}
+          onChange={handleCaptchaChange}
+        />
       </div>
 
       <Button type="submit" className="w-full">
