@@ -57,11 +57,11 @@ export const ItemCard = ({
 
   return (
     <Card className="card-hover">
-      <div className="relative h-48">
+      <div className="relative bg-gray-50 rounded-t-lg" style={{ paddingTop: '75%' }}>
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover rounded-t-lg"
+          className="absolute inset-0 w-full h-full object-contain"
         />
       </div>
       
