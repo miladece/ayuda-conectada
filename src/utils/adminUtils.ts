@@ -4,6 +4,18 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
   console.log("Checking if first user:", userId);
   
   try {
+    // First check if the user's profile already exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (existingProfile) {
+      console.log("Profile already exists:", existingProfile);
+      return existingProfile.is_admin;
+    }
+
     // Check if any profiles exist
     const { count, error: countError } = await supabase
       .from('profiles')
@@ -32,7 +44,22 @@ export const checkFirstUser = async (userId: string, userEmail: string) => {
         return false;
       }
 
+      console.log("Created first admin user:", userId);
       return true;
+    }
+
+    // If profiles exist but this user doesn't have one, create a regular user profile
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: userId,
+        user_email: userEmail,
+        is_admin: false,
+        banned: false
+      });
+
+    if (insertError) {
+      console.error("Error creating user profile:", insertError);
     }
 
     return false;
