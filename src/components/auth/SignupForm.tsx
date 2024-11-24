@@ -18,11 +18,12 @@ export const SignupForm = () => {
     setLoading(true);
 
     try {
+      console.log("Starting signup process");
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
         }
       });
 
