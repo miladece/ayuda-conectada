@@ -6,13 +6,53 @@ import { useNavigate } from "react-router-dom";
 import { UsersList } from "@/components/admin/UsersList";
 import { PostsList } from "@/components/admin/PostsList";
 import { checkFirstUser, checkAdminStatus } from "@/utils/adminUtils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Admin = () => {
-  const [users, setUsers] = useState([]);
-  const [publications, setPublications] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch users data
+  const { data: users = [], refetch: refetchUsers } = useQuery({
+    queryKey: ['adminUsers'],
+    queryFn: async () => {
+      console.log("Fetching users data...");
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+      
+      console.log("Fetched users:", data);
+      return data || [];
+    },
+    enabled: isAdmin
+  });
+
+  // Fetch publications data
+  const { data: publications = [], refetch: refetchPublications } = useQuery({
+    queryKey: ['adminPublications'],
+    queryFn: async () => {
+      console.log("Fetching publications data...");
+      const { data, error } = await supabase
+        .from('publications')
+        .select('*');
+      
+      if (error) {
+        console.error("Error fetching publications:", error);
+        throw error;
+      }
+      
+      console.log("Fetched publications:", data);
+      return data || [];
+    },
+    enabled: isAdmin
+  });
 
   useEffect(() => {
     checkAdminAccess();
@@ -37,7 +77,6 @@ const Admin = () => {
     const isFirstUserAdmin = await checkFirstUser(user.id, user.email);
     if (isFirstUserAdmin) {
       setIsAdmin(true);
-      loadData();
       return;
     }
 
@@ -55,39 +94,6 @@ const Admin = () => {
     }
 
     setIsAdmin(true);
-    loadData();
-  };
-
-  const loadData = async () => {
-    console.log("Loading admin data...");
-    const { data: usersData, error: usersError } = await supabase
-      .from('profiles')
-      .select('*');
-    
-    const { data: publicationsData, error: publicationsError } = await supabase
-      .from('publications')
-      .select('*');
-    
-    if (usersError) {
-      console.error("Error loading users:", usersError);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar los usuarios",
-      });
-    }
-
-    if (publicationsError) {
-      console.error("Error loading publications:", publicationsError);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar las publicaciones",
-      });
-    }
-    
-    if (usersData) setUsers(usersData);
-    if (publicationsData) setPublications(publicationsData);
   };
 
   const handleDeletePost = async (postId: string) => {
@@ -108,7 +114,29 @@ const Admin = () => {
         title: "Publicación eliminada",
         description: "La publicación ha sido eliminada correctamente",
       });
-      loadData();
+      refetchPublications();
+    }
+  };
+
+  const handleBanUser = async (userId: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ banned: true })
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error("Error banning user:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo banear al usuario",
+      });
+    } else {
+      toast({
+        title: "Usuario baneado",
+        description: "El usuario ha sido baneado correctamente",
+      });
+      refetchUsers();
     }
   };
 
@@ -122,7 +150,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">Panel de Administración</h2>
         <div className="space-y-8">
-          <UsersList users={users} onBanUser={() => {}} />
+          <UsersList users={users} onBanUser={handleBanUser} />
           <PostsList posts={publications} onDeletePost={handleDeletePost} />
         </div>
       </main>
