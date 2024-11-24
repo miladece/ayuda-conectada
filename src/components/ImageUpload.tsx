@@ -112,41 +112,45 @@ export const ImageUpload = ({ onImageSelected }: ImageUploadProps) => {
 
   return (
     <div className="space-y-4">
-      <div 
-        className="relative flex items-center justify-center w-full"
-        onDragEnter={handleDrag}
-      >
-        <label 
-          className={`flex flex-col items-center justify-center w-full h-64 border-2 ${
-            dragActive ? 'border-primary border-solid' : 'border-gray-300 border-dashed'
-          } rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors`}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={handleDrop}
+      {!preview && (
+        <div 
+          className="relative flex items-center justify-center w-full"
+          onDragEnter={handleDrag}
         >
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <Upload className="w-8 h-8 mb-4 text-gray-500" />
-            <p className="mb-2 text-sm text-gray-500">
-              <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
-            </p>
-            <p className="text-xs text-gray-500">PNG, JPG o JPEG (MAX. 5MB)</p>
-          </div>
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-        </label>
-      </div>
+          <label 
+            className={`flex flex-col items-center justify-center w-full h-64 border-2 ${
+              dragActive ? 'border-primary border-solid' : 'border-gray-300 border-dashed'
+            } rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors`}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Upload className="w-8 h-8 mb-4 text-gray-500" />
+              <p className="mb-2 text-sm text-gray-500">
+                <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
+              </p>
+              <p className="text-xs text-gray-500">PNG, JPG o JPEG (MAX. 5MB)</p>
+            </div>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </label>
+        </div>
+      )}
 
       {preview && (
-        <div className="relative w-full h-48">
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-full object-contain rounded-lg"
-          />
+        <div className="relative bg-gray-50 rounded-lg p-4">
+          <div className="relative w-full" style={{ paddingTop: '75%' }}>
+            <img
+              src={preview}
+              alt="Preview"
+              className="absolute inset-0 w-full h-full object-contain rounded-lg"
+            />
+          </div>
           <Button
             variant="destructive"
             size="icon"
