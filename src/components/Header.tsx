@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { ShoppingBag, MessageSquare, Upload, User, Gift } from "lucide-react";
+import { ShoppingBag, MessageSquare, Upload, User, Gift, Home } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -78,11 +78,20 @@ export const Header = () => {
         </div>
         
         <p className="text-gray-600 max-w-2xl mx-auto text-center mb-8">
-          Conectando a los afectados por las inundaciones con recursos esenciales. 
-          Juntos podemos ayudar a reconstruir nuestra comunidad.
+          Conectando a los afectados por las inundaciones de la DANA en Valencia con recursos esenciales. 
+          Juntos podemos ayudar a reconstruir nuestra comunidad. El poble salva el poble.
         </p>
         
         <div className="flex flex-wrap justify-center gap-4">
+          <Button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
+            size="lg"
+          >
+            <Home className="w-5 h-5" />
+            Ver Todo
+          </Button>
+
           <Button
             onClick={() => navigate("/ofertas")}
             className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
@@ -112,7 +121,7 @@ export const Header = () => {
           
           <Button
             onClick={() => navigate("/publicar")}
-            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB]"
+            className="flex items-center gap-2 bg-[#FF4F4F] hover:bg-[#E63E3E]"
             size="lg"
           >
             <Upload className="w-5 h-5" />
