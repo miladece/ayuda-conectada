@@ -19,10 +19,12 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const fetchPublications = async () => {
+    const startTime = new Date().toISOString();
     console.log("Starting fetchPublications:", {
-      timestamp: new Date().toISOString(),
+      timestamp: startTime,
       browser: navigator.userAgent,
-      selectedCategory
+      selectedCategory,
+      supabaseUrl: supabase.supabaseUrl
     });
 
     try {
@@ -46,6 +48,8 @@ const Index = () => {
       if (error) {
         console.error("Supabase query error:", {
           error,
+          errorMessage: error.message,
+          errorCode: error.code,
           timestamp: new Date().toISOString()
         });
         throw error;
@@ -53,14 +57,20 @@ const Index = () => {
       
       console.log("Publications fetched successfully:", {
         count: data?.length || 0,
-        firstItem: data?.[0],
-        timestamp: new Date().toISOString()
+        firstItem: data?.[0] ? {
+          id: data[0].id,
+          title: data[0].title,
+          type: data[0].type
+        } : null,
+        timestamp: new Date().toISOString(),
+        queryDuration: `${new Date().getTime() - new Date(startTime).getTime()}ms`
       });
 
       return data;
     } catch (error) {
       console.error("Error in fetchPublications:", {
         error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString()
       });
