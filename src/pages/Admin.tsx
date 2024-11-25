@@ -14,12 +14,12 @@ const Admin = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch users data with no caching
+  // Fetch users data
   const { data: users = [], refetch: refetchUsers } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
-      console.log("Fetching users data...");
-      const { data, error } = await supabase
+      console.log("Starting users fetch...");
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -29,15 +29,35 @@ const Admin = () => {
         throw error;
       }
       
-      console.log("Fetched users:", data);
-      return data || [];
+      // Get auth users to merge with profiles
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Error fetching auth users:", authError);
+        throw authError;
+      }
+
+      console.log("Fetched profiles:", profiles);
+      console.log("Fetched auth users:", authUsers);
+
+      // Merge profiles with auth users data
+      const mergedUsers = profiles?.map(profile => ({
+        user_id: profile.user_id,
+        name: profile.name || profile.email,
+        email: profile.email,
+        banned: profile.banned,
+        created_at: profile.created_at
+      })) || [];
+
+      console.log("Merged users data:", mergedUsers);
+      return mergedUsers;
     },
     enabled: isAdmin,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0  // Don't cache results
+    staleTime: 0,
+    gcTime: 0
   });
 
-  // Fetch publications data with no caching
+  // Fetch publications data
   const { data: publications = [], refetch: refetchPublications } = useQuery({
     queryKey: ['adminPublications'],
     queryFn: async () => {
@@ -56,8 +76,8 @@ const Admin = () => {
       return data || [];
     },
     enabled: isAdmin,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0  // Don't cache results
+    staleTime: 0,
+    gcTime: 0
   });
 
   useEffect(() => {
