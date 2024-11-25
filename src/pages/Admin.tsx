@@ -25,23 +25,14 @@ const Admin = () => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error("Error fetching users:", error);
+        console.error("Error fetching profiles:", error);
         throw error;
-      }
-      
-      // Get auth users to merge with profiles
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error("Error fetching auth users:", authError);
-        throw authError;
       }
 
       console.log("Fetched profiles:", profiles);
-      console.log("Fetched auth users:", authUsers);
 
-      // Merge profiles with auth users data
-      const mergedUsers = profiles?.map(profile => ({
+      // Map profiles to the required format
+      const formattedUsers = profiles?.map(profile => ({
         user_id: profile.user_id,
         name: profile.name || profile.email,
         email: profile.email,
@@ -49,8 +40,8 @@ const Admin = () => {
         created_at: profile.created_at
       })) || [];
 
-      console.log("Merged users data:", mergedUsers);
-      return mergedUsers;
+      console.log("Formatted users data:", formattedUsers);
+      return formattedUsers;
     },
     enabled: isAdmin,
     staleTime: 0,
