@@ -6,7 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { UsersList } from "@/components/admin/UsersList";
 import { PostsList } from "@/components/admin/PostsList";
 import { checkFirstUser, checkAdminStatus } from "@/utils/adminUtils";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAdminUsers } from "@/components/admin/hooks/useAdminUsers";
+import { useAdminPublications } from "@/components/admin/hooks/useAdminPublications";
 
 const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -14,102 +16,8 @@ const Admin = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch users data
-  const { data: users = [], refetch: refetchUsers } = useQuery({
-    queryKey: ['adminUsers'],
-    queryFn: async () => {
-      console.log("Starting users fetch...");
-      
-      // First get all auth users
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.users();
-      
-      if (authError) {
-        console.error("Error fetching auth users:", authError);
-        // If we can't get auth users, fall back to profiles
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (profilesError) throw profilesError;
-        return profiles;
-      }
-
-      console.log("Fetched auth users:", authUsers);
-
-      // For each auth user, ensure they have a profile
-      for (const authUser of authUsers) {
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select()
-          .eq('user_id', authUser.id)
-          .single();
-
-        if (!existingProfile) {
-          // Create profile if it doesn't exist
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: authUser.id,
-              name: authUser.email,
-              email: authUser.email,
-              is_admin: false,
-              banned: false
-            });
-
-          if (insertError) {
-            console.error("Error creating profile for user:", authUser.id, insertError);
-          }
-        }
-      }
-
-      // Now get all profiles after ensuring they exist
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) {
-        console.error("Error fetching profiles:", profilesError);
-        throw profilesError;
-      }
-
-      console.log("Final profiles data:", profiles);
-
-      return profiles?.map(profile => ({
-        user_id: profile.user_id,
-        name: profile.name || profile.email,
-        email: profile.email,
-        banned: profile.banned,
-        created_at: profile.created_at
-      })) || [];
-    },
-    enabled: isAdmin,
-    staleTime: 0,
-    gcTime: 0
-  });
-
-  const { data: publications = [], refetch: refetchPublications } = useQuery({
-    queryKey: ['adminPublications'],
-    queryFn: async () => {
-      console.log("Fetching publications data...");
-      const { data, error } = await supabase
-        .from('publications')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching publications:", error);
-        throw error;
-      }
-      
-      console.log("Fetched publications:", data);
-      return data || [];
-    },
-    enabled: isAdmin,
-    staleTime: 0,
-    gcTime: 0
-  });
+  const { data: users = [], refetch: refetchUsers } = useAdminUsers(isAdmin);
+  const { data: publications = [], refetch: refetchPublications } = useAdminPublications(isAdmin);
 
   useEffect(() => {
     checkAdminAccess();
