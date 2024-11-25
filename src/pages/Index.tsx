@@ -24,7 +24,7 @@ const Index = () => {
       timestamp: startTime,
       browser: navigator.userAgent,
       selectedCategory,
-      supabaseUrl: supabase.supabaseUrl
+      environment: import.meta.env.MODE
     });
 
     try {
