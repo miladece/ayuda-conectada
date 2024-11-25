@@ -19,23 +19,30 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Add auth state check
+  // Add auth state check with detailed logging
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("Auth check on mount:", {
-        hasSession: !!session,
-        error: error?.message,
-        timestamp: new Date().toISOString()
-      });
-      setAuthChecked(true);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Initial auth check:", {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          error: error?.message,
+          timestamp: new Date().toISOString()
+        });
+        setAuthChecked(true);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        setAuthChecked(true); // Still set to true to allow guest access
+      }
     };
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", {
+      console.log("Auth state change detected:", {
         event,
         hasSession: !!session,
+        userId: session?.user?.id,
         timestamp: new Date().toISOString()
       });
     });
@@ -44,21 +51,23 @@ const Index = () => {
   }, []);
 
   const fetchPublications = async () => {
-    const startTime = new Date().toISOString();
-    console.log("Starting fetchPublications:", {
-      timestamp: startTime,
+    console.log("=== Starting Publications Fetch ===");
+    console.log("Initial state:", {
       authChecked,
-      selectedCategory
+      selectedCategory,
+      timestamp: new Date().toISOString()
     });
 
     try {
-      // Log auth state before query
+      // Check auth state before query
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("Auth state before query:", {
+      console.log("Current auth state:", {
         hasSession: !!session,
+        userId: session?.user?.id,
         timestamp: new Date().toISOString()
       });
 
+      // Construct and log query
       let query = supabase
         .from('publications')
         .select('*')
@@ -69,31 +78,37 @@ const Index = () => {
         query = query.eq('category', selectedCategory);
       }
 
+      console.log("Executing query:", {
+        hasCategory: !!selectedCategory,
+        category: selectedCategory,
+        timestamp: new Date().toISOString()
+      });
+
       const { data, error } = await query;
       
       if (error) {
-        console.error("Supabase query error:", {
+        console.error("Query error:", {
           error,
-          errorMessage: error.message,
-          errorCode: error.code,
+          message: error.message,
+          code: error.code,
           timestamp: new Date().toISOString()
         });
         throw error;
       }
       
-      console.log("Publications fetch result:", {
+      console.log("Query results:", {
         success: true,
         count: data?.length || 0,
-        timestamp: new Date().toISOString(),
-        queryDuration: `${new Date().getTime() - new Date(startTime).getTime()}ms`
+        hasData: !!data,
+        firstItemId: data?.[0]?.id,
+        timestamp: new Date().toISOString()
       });
 
-      return data;
+      return data || [];
     } catch (error) {
-      console.error("Error in fetchPublications:", {
+      console.error("Fatal error in fetchPublications:", {
         error,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
+        message: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
       throw error;
@@ -104,10 +119,20 @@ const Index = () => {
     queryKey: ['publications', selectedCategory, authChecked],
     queryFn: fetchPublications,
     retry: 2,
-    enabled: authChecked, // Only run query after checking auth
+    enabled: authChecked,
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
   });
+
+  // Log state updates
+  useEffect(() => {
+    console.log("Items state updated:", {
+      itemsLength: items?.length || 0,
+      isLoading,
+      hasError: !!error,
+      timestamp: new Date().toISOString()
+    });
+  }, [items, isLoading, error]);
 
   if (error) {
     console.error("Query error:", {
@@ -120,14 +145,6 @@ const Index = () => {
       variant: "destructive",
     });
   }
-
-  // Log whenever items change
-  console.log("Items state updated:", {
-    itemsLength: items?.length || 0,
-    isLoading,
-    hasError: !!error,
-    timestamp: new Date().toISOString()
-  });
 
   return (
     <div className="min-h-screen bg-gray-50">
