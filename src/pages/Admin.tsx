@@ -19,36 +19,76 @@ const Admin = () => {
     queryKey: ['adminUsers'],
     queryFn: async () => {
       console.log("Starting users fetch...");
-      const { data: profiles, error } = await supabase
+      
+      // First get all auth users
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.users();
+      
+      if (authError) {
+        console.error("Error fetching auth users:", authError);
+        // If we can't get auth users, fall back to profiles
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (profilesError) throw profilesError;
+        return profiles;
+      }
+
+      console.log("Fetched auth users:", authUsers);
+
+      // For each auth user, ensure they have a profile
+      for (const authUser of authUsers) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select()
+          .eq('user_id', authUser.id)
+          .single();
+
+        if (!existingProfile) {
+          // Create profile if it doesn't exist
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: authUser.id,
+              name: authUser.email,
+              email: authUser.email,
+              is_admin: false,
+              banned: false
+            });
+
+          if (insertError) {
+            console.error("Error creating profile for user:", authUser.id, insertError);
+          }
+        }
+      }
+
+      // Now get all profiles after ensuring they exist
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching profiles:", error);
-        throw error;
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
       }
 
-      console.log("Fetched profiles:", profiles);
+      console.log("Final profiles data:", profiles);
 
-      // Map profiles to the required format
-      const formattedUsers = profiles?.map(profile => ({
+      return profiles?.map(profile => ({
         user_id: profile.user_id,
         name: profile.name || profile.email,
         email: profile.email,
         banned: profile.banned,
         created_at: profile.created_at
       })) || [];
-
-      console.log("Formatted users data:", formattedUsers);
-      return formattedUsers;
     },
     enabled: isAdmin,
     staleTime: 0,
     gcTime: 0
   });
 
-  // Fetch publications data
   const { data: publications = [], refetch: refetchPublications } = useQuery({
     queryKey: ['adminPublications'],
     queryFn: async () => {

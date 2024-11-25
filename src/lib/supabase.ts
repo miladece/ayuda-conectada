@@ -19,8 +19,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'Cache-Control': 'no-store',
-      'Pragma': 'no-cache',
-      'Access-Control-Allow-Origin': '*'
+      'Pragma': 'no-cache'
     }
   }
 });
