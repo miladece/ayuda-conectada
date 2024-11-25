@@ -7,7 +7,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabase_url, supabase_anon_key, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -21,7 +21,29 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'Cache-Control': 'no-store',
       'Pragma': 'no-cache'
     }
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
+
+// Add error handling for connection issues
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session);
+});
+
+// Add connection status monitoring
+supabase.channel('system')
+  .on('system', { event: '*' }, (payload) => {
+    console.log('Supabase system event:', payload);
+  })
+  .subscribe((status) => {
+    console.log('Supabase connection status:', status);
+  });
 
 console.log('Supabase client initialized with URL:', supabaseUrl);
