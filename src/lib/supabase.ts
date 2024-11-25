@@ -32,18 +32,34 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Add error handling for connection issues
+// Enhanced error handling for connection issues
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event, session);
+  console.log('Supabase auth state changed:', {
+    event,
+    hasSession: !!session,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent
+  });
 });
 
-// Add connection status monitoring
+// Enhanced connection status monitoring
 supabase.channel('system')
   .on('system', { event: '*' }, (payload) => {
-    console.log('Supabase system event:', payload);
+    console.log('Supabase system event:', {
+      payload,
+      timestamp: new Date().toISOString()
+    });
   })
   .subscribe((status) => {
-    console.log('Supabase connection status:', status);
+    console.log('Supabase connection status:', {
+      status,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    });
   });
 
-console.log('Supabase client initialized with URL:', supabaseUrl);
+console.log('Supabase client initialized:', {
+  url: supabaseUrl,
+  timestamp: new Date().toISOString(),
+  userAgent: navigator.userAgent
+});

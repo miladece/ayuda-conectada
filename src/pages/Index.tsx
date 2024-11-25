@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { ItemCard } from "@/components/ItemCard";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -17,17 +17,48 @@ const Index = () => {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Add auth state check
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log("Auth check on mount:", {
+        hasSession: !!session,
+        error: error?.message,
+        timestamp: new Date().toISOString()
+      });
+      setAuthChecked(true);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", {
+        event,
+        hasSession: !!session,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const fetchPublications = async () => {
     const startTime = new Date().toISOString();
     console.log("Starting fetchPublications:", {
       timestamp: startTime,
-      browser: navigator.userAgent,
-      selectedCategory,
-      environment: import.meta.env.MODE
+      authChecked,
+      selectedCategory
     });
 
     try {
+      // Log auth state before query
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Auth state before query:", {
+        hasSession: !!session,
+        timestamp: new Date().toISOString()
+      });
+
       let query = supabase
         .from('publications')
         .select('*')
@@ -37,11 +68,6 @@ const Index = () => {
       if (selectedCategory) {
         query = query.eq('category', selectedCategory);
       }
-
-      console.log("Executing Supabase query:", {
-        timestamp: new Date().toISOString(),
-        query: `Fetching publications${selectedCategory ? ` for category: ${selectedCategory}` : ''}`
-      });
 
       const { data, error } = await query;
       
@@ -55,13 +81,9 @@ const Index = () => {
         throw error;
       }
       
-      console.log("Publications fetched successfully:", {
+      console.log("Publications fetch result:", {
+        success: true,
         count: data?.length || 0,
-        firstItem: data?.[0] ? {
-          id: data[0].id,
-          title: data[0].title,
-          type: data[0].type
-        } : null,
         timestamp: new Date().toISOString(),
         queryDuration: `${new Date().getTime() - new Date(startTime).getTime()}ms`
       });
@@ -79,11 +101,12 @@ const Index = () => {
   };
 
   const { data: items = [], isLoading, error } = useQuery({
-    queryKey: ['publications', selectedCategory],
+    queryKey: ['publications', selectedCategory, authChecked],
     queryFn: fetchPublications,
     retry: 2,
-    staleTime: 1000 * 60, // 1 minute
-    gcTime: 1000 * 60 * 5, // 5 minutes
+    enabled: authChecked, // Only run query after checking auth
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
   });
 
   if (error) {
