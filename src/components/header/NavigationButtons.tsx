@@ -13,6 +13,7 @@ export const NavigationButtons = () => {
         size="default"
       >
         <Home className="w-5 h-5" />
+        Todo
       </Button>
 
       <Button
