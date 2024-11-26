@@ -22,7 +22,7 @@ export const NavigationButtons = () => {
         size="lg"
       >
         <ShoppingBag className="w-5 h-5" />
-        Ver Ofertas
+        Ofertas
       </Button>
       
       <Button
@@ -31,7 +31,7 @@ export const NavigationButtons = () => {
         size="lg"
       >
         <MessageSquare className="w-5 h-5" />
-        Ver Solicitudes
+        Solicitudes
       </Button>
 
       <Button
@@ -40,7 +40,7 @@ export const NavigationButtons = () => {
         size="lg"
       >
         <Gift className="w-5 h-5" />
-        Ver Donaciones
+        Donaciones
       </Button>
       
       <Button
