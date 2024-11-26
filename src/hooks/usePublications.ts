@@ -9,14 +9,21 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
     queryKey: ['publications', selectedCategory, authChecked],
     queryFn: async () => {
       console.log("=== Starting Publications Fetch ===", {
-        browser: navigator.userAgent,
-        timestamp: new Date().toISOString(),
         selectedCategory,
-        authChecked
+        authChecked,
+        timestamp: new Date().toISOString()
       });
       
       try {
-        // First check Supabase connection
+        // Wait for any pending auth operations
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Current session state:", {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          timestamp: new Date().toISOString()
+        });
+
+        // Check Supabase connection
         const { count, error: healthError } = await supabase
           .from('publications')
           .select('*', { count: 'exact', head: true });
@@ -24,7 +31,6 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
         if (healthError) {
           console.error("Supabase health check failed:", {
             error: healthError,
-            browser: navigator.userAgent,
             timestamp: new Date().toISOString()
           });
           throw healthError;
@@ -35,7 +41,7 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
           timestamp: new Date().toISOString()
         });
 
-        // Now fetch the actual data
+        // Fetch publications
         let query = supabase
           .from('publications')
           .select('*')
@@ -51,7 +57,6 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
         if (error) {
           console.error("Publications query failed:", {
             error,
-            browser: navigator.userAgent,
             timestamp: new Date().toISOString()
           });
           throw error;
@@ -60,23 +65,14 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
         console.log("Publications query successful:", {
           count: data?.length || 0,
           hasData: !!data,
-          timestamp: new Date().toISOString(),
-          browser: navigator.userAgent
+          timestamp: new Date().toISOString()
         });
-
-        if (!data || data.length === 0) {
-          console.log("No publications found:", {
-            selectedCategory,
-            timestamp: new Date().toISOString()
-          });
-        }
 
         return data || [];
       } catch (error: any) {
         console.error("Fatal error in publications fetch:", {
           error,
           message: error.message,
-          browser: navigator.userAgent,
           timestamp: new Date().toISOString()
         });
 

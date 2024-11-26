@@ -13,7 +13,9 @@ export const useAuthCheck = () => {
           userId: session?.user?.id,
           timestamp: new Date().toISOString()
         });
-        setAuthChecked(true);
+        
+        // Small delay to ensure auth is fully initialized
+        setTimeout(() => setAuthChecked(true), 100);
       } catch (error) {
         console.error("Auth check failed:", error);
         setAuthChecked(true);
@@ -29,6 +31,10 @@ export const useAuthCheck = () => {
         userId: session?.user?.id,
         timestamp: new Date().toISOString()
       });
+      
+      // Reset authChecked on auth state changes
+      setAuthChecked(false);
+      setTimeout(() => setAuthChecked(true), 100);
     });
 
     return () => subscription.unsubscribe();
