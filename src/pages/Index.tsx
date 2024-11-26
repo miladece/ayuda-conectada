@@ -37,12 +37,12 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Categorías</h2>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
             {categories.map((category) => (
               <Badge
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
-                className="text-lg py-2 px-4 cursor-pointer hover:bg-primary/90 transition-colors"
+                className="text-base sm:text-lg py-1.5 sm:py-2 px-3 sm:px-4 cursor-pointer hover:bg-primary/90 transition-colors justify-center"
                 onClick={() => 
                   setSelectedCategory(
                     selectedCategory === category.id ? null : category.id
@@ -50,7 +50,7 @@ const Index = () => {
                 }
               >
                 <span className="mr-2">{category.icon}</span>
-                {category.label}
+                <span className="text-sm sm:text-base">{category.label}</span>
               </Badge>
             ))}
           </div>

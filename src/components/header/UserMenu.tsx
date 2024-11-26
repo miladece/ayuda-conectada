@@ -25,7 +25,6 @@ export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
 
   const handleSignup = () => {
     navigate('/signup');
-    // Wait for navigation to complete before scrolling
     setTimeout(() => {
       document.getElementById('signup-form')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -33,11 +32,11 @@ export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
 
   if (!user) {
     return (
-      <div className="flex gap-4">
-        <Button variant="outline" onClick={() => navigate('/login')}>
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+        <Button variant="outline" onClick={() => navigate('/login')} className="w-full sm:w-auto">
           Iniciar Sesión
         </Button>
-        <Button onClick={handleSignup}>
+        <Button onClick={handleSignup} className="w-full sm:w-auto">
           Registrarse
         </Button>
       </div>
