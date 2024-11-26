@@ -41,7 +41,7 @@ export const SignupForm = () => {
       
       toast({
         title: "¡Registro iniciado!",
-        description: "Por favor, revisa tu correo electrónico para verificar tu cuenta antes de iniciar sesión.",
+        description: "Has iniciado el registro, en cuanto este listo ya puedes publicar anuncios.",
       });
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -63,8 +63,8 @@ export const SignupForm = () => {
           Te has registrado correctamente con el email:  {email} . 
           Ahora ya puedes iniciar sesión directamente y empezar a publicar.
         </p>
-        <Button onClick={() => navigate('/login')} className="mt-4">
-          Ir a Iniciar Sesión
+        <Button onClick={() => navigate('/')} className="mt-4">
+          Ir a Página Principal
         </Button>
       </div>
     );
