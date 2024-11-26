@@ -38,10 +38,11 @@ export const PublicationForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Tipo de anuncio</label>
+        <label className="text-sm font-medium">Tipo de anuncio *</label>
         <Select
           value={type}
           onValueChange={(value: "oferta" | "solicitud" | "donacion") => setType(value)}
+          required
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona el tipo" />
@@ -55,8 +56,8 @@ export const PublicationForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Categoría</label>
-        <Select value={category} onValueChange={setCategory}>
+        <label className="text-sm font-medium">Categoría *</label>
+        <Select value={category} onValueChange={setCategory} required>
           <SelectTrigger>
             <SelectValue placeholder="Selecciona una categoría" />
           </SelectTrigger>
@@ -70,7 +71,7 @@ export const PublicationForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Título</label>
+        <label className="text-sm font-medium">Título *</label>
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -80,7 +81,7 @@ export const PublicationForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Ubicación</label>
+        <label className="text-sm font-medium">Ubicación *</label>
         <Input
           value={location}
           onChange={(e) => setLocation(e.target.value)}
@@ -90,7 +91,7 @@ export const PublicationForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Descripción</label>
+        <label className="text-sm font-medium">Descripción *</label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -100,7 +101,7 @@ export const PublicationForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Contacto</label>
+        <label className="text-sm font-medium">Contacto *</label>
         <Input
           value={contact}
           onChange={(e) => setContact(e.target.value)}
