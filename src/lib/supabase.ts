@@ -4,7 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file');
+  throw new Error('Missing Supabase environment variables');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -12,13 +12,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: localStorage,
+    storage: window.localStorage,
     storageKey: 'supabase.auth.token',
     flowType: 'pkce'
   },
   global: {
     headers: {
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'no-cache',
       'Pragma': 'no-cache'
     }
   },
@@ -29,6 +29,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     params: {
       eventsPerSecond: 10
     }
+  },
+  // Add more aggressive timeouts
+  queries: {
+    retryAttempts: 3,
+    retryInterval: 1000
   }
 });
 
@@ -42,12 +47,13 @@ supabase.auth.onAuthStateChange((event, session) => {
   });
 });
 
-// Enhanced connection status monitoring
+// Monitor connection status
 supabase.channel('system')
   .on('system', { event: '*' }, (payload) => {
     console.log('Supabase system event:', {
       payload,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
     });
   })
   .subscribe((status) => {
