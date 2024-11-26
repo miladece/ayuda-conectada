@@ -15,73 +15,71 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAdminStatus = async (userId: string) => {
+      if (!mounted) return;
+      
       try {
-        console.log("Checking admin status for user:", userId);
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('user_id', userId)
           .single();
         
-        console.log("Admin status check result:", {
-          userId,
-          isAdmin: profile?.is_admin,
-          timestamp: new Date().toISOString()
-        });
+        if (error) throw error;
         
-        setIsAdmin(profile?.is_admin || false);
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-        setIsAdmin(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const getUser = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log("Current user in header:", {
-          userId: user?.id,
-          timestamp: new Date().toISOString()
-        });
-        
-        setUser(user);
-        
-        if (user) {
-          await checkAdminStatus(user.id);
-        } else {
-          setIsAdmin(false);
-          setIsLoading(false);
+        if (mounted) {
+          setIsAdmin(profile?.is_admin || false);
         }
       } catch (error) {
-        console.error("Error getting user:", error);
-        setIsLoading(false);
+        console.error("Error checking admin status:", error);
+        if (mounted) {
+          setIsAdmin(false);
+        }
       }
     };
 
-    getUser();
+    const initializeAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (mounted) {
+          setUser(user);
+          if (user) {
+            await checkAdminStatus(user.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed in header:", {
-        event: _event,
-        userId: session?.user?.id,
-        timestamp: new Date().toISOString()
-      });
+      if (!mounted) return;
       
+      setIsLoading(true);
       setUser(session?.user);
       
       if (session?.user) {
         await checkAdminStatus(session.user.id);
       } else {
         setIsAdmin(false);
-        setIsLoading(false);
       }
+      
+      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
