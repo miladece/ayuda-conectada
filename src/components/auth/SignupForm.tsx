@@ -58,10 +58,10 @@ export const SignupForm = () => {
   if (verificationSent) {
     return (
       <div className="text-center space-y-4">
-        <h3 className="text-lg font-medium">¡Revisa tu correo electrónico!</h3>
+        <h3 className="text-lg font-medium">¡Te has registrado correctamente!</h3>
         <p className="text-gray-600">
-          Te hemos enviado un enlace de verificación a {email} con remitente Supabase Auth. 
-          Por favor, revisa que lo tienes en tu email y no ha llegado a spam y verifica tu correo electrónico antes de iniciar sesión.
+          Te has registrado correctamente con el email:  {email} . 
+          Ahora ya puedes iniciar sesión directamente y empezar a publicar.
         </p>
         <Button onClick={() => navigate('/login')} className="mt-4">
           Ir a Iniciar Sesión
