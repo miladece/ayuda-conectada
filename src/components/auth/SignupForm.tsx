@@ -15,6 +15,28 @@ export const SignupForm = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const createProfile = async (userId: string, userEmail: string) => {
+    console.log("Creating profile for:", { userId, userEmail });
+    
+    const { error } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          user_id: userId,
+          email: userEmail,
+          is_admin: false,
+          banned: false
+        }
+      ]);
+
+    if (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
+    
+    console.log("Profile created successfully");
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -37,6 +59,11 @@ export const SignupForm = () => {
       if (error) throw error;
 
       console.log("Signup response:", data);
+
+      if (data.user) {
+        await createProfile(data.user.id, email);
+      }
+
       setVerificationSent(true);
       
       toast({
@@ -60,7 +87,7 @@ export const SignupForm = () => {
       <div className="text-center space-y-4">
         <h3 className="text-lg font-medium">¡Te has registrado correctamente!</h3>
         <p className="text-gray-600">
-          Te has registrado correctamente con el email:  {email} . 
+          Te has registrado correctamente con el email: {email}. 
           Ahora ya puedes iniciar sesión directamente y empezar a publicar.
         </p>
         <Button onClick={() => navigate('/')} className="mt-4">
