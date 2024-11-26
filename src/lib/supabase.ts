@@ -29,11 +29,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     params: {
       eventsPerSecond: 10
     }
-  },
-  // Add more aggressive timeouts
-  queries: {
-    retryAttempts: 3,
-    retryInterval: 1000
   }
 });
 

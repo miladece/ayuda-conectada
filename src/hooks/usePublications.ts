@@ -17,9 +17,9 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
       
       try {
         // First check Supabase connection
-        const { data: healthCheck, error: healthError } = await supabase
+        const { count, error: healthError } = await supabase
           .from('publications')
-          .select('count(*)', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true });
 
         if (healthError) {
           console.error("Supabase health check failed:", {
@@ -31,7 +31,7 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
         }
 
         console.log("Supabase connection healthy:", {
-          count: healthCheck.count,
+          count,
           timestamp: new Date().toISOString()
         });
 
@@ -80,7 +80,6 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
           timestamp: new Date().toISOString()
         });
 
-        // Show a toast for connection errors
         toast({
           title: "Error de conexión",
           description: "No se pudieron cargar las publicaciones. Por favor, intenta recargar la página.",
@@ -91,7 +90,7 @@ export const usePublications = (selectedCategory: string | null, authChecked: bo
       }
     },
     enabled: authChecked,
-    staleTime: 1000 * 30, // Reduced to 30 seconds to help with Chrome issues
+    staleTime: 1000 * 30,
     gcTime: 1000 * 60 * 5,
     retry: (failureCount, error: any) => {
       console.log("Retrying query:", {
