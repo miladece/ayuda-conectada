@@ -21,6 +21,7 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
       if (!mounted) return;
       
       try {
+        console.log("Checking admin status for:", userId);
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('is_admin')
@@ -29,11 +30,11 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
         
         if (error) {
           console.error("Admin check error:", error);
-          setIsAdmin(false);
-          return;
+          throw error;
         }
         
         if (mounted) {
+          console.log("Setting admin status:", profile?.is_admin);
           setIsAdmin(!!profile?.is_admin);
         }
       } catch (error) {
@@ -48,20 +49,24 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
       if (!mounted) return;
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log("Initializing auth...");
+        const { data: { user }, error } = await supabase.auth.getUser();
         
+        if (error) {
+          console.error("Auth initialization error:", error);
+          throw error;
+        }
+
         if (mounted) {
+          console.log("Setting initial user:", user?.id);
           setUser(user);
+          
           if (user) {
             await checkAdminStatus(user.id);
           }
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
-        if (mounted) {
-          setUser(null);
-          setIsAdmin(false);
-        }
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -69,10 +74,17 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
       }
     };
 
+    // Initialize auth state
+    console.log("Starting auth initialization");
     initializeAuth();
 
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
+      
+      console.log("Auth state changed:", { event, userId: session?.user?.id });
+      
+      setIsLoading(true);
       
       if (session?.user) {
         setUser(session.user);
@@ -88,6 +100,7 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
     });
 
     return () => {
+      console.log("Cleaning up auth subscriptions");
       mounted = false;
       subscription.unsubscribe();
     };
