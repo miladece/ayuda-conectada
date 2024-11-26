@@ -13,7 +13,7 @@ export const NavigationButtons = () => {
         size="lg"
       >
         <Home className="w-5 h-5" />
-        Ver Todo
+       
       </Button>
 
       <Button
