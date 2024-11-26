@@ -12,40 +12,72 @@ interface HeaderProps {
 export const Header = ({ hideNavigation = false }: HeaderProps) => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log("Current user in header:", user);
-      setUser(user);
-      
-      if (user) {
+    const checkAdminStatus = async (userId: string) => {
+      try {
+        console.log("Checking admin status for user:", userId);
         const { data: profile } = await supabase
           .from('profiles')
           .select('is_admin')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .single();
         
-        console.log("User admin status:", profile?.is_admin);
+        console.log("Admin status check result:", {
+          userId,
+          isAdmin: profile?.is_admin,
+          timestamp: new Date().toISOString()
+        });
+        
         setIsAdmin(profile?.is_admin || false);
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
       }
     };
+
+    const getUser = async () => {
+      try {
+        setIsLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log("Current user in header:", {
+          userId: user?.id,
+          timestamp: new Date().toISOString()
+        });
+        
+        setUser(user);
+        
+        if (user) {
+          await checkAdminStatus(user.id);
+        } else {
+          setIsAdmin(false);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error getting user:", error);
+        setIsLoading(false);
+      }
+    };
+
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed:", _event, session?.user);
+      console.log("Auth state changed in header:", {
+        event: _event,
+        userId: session?.user?.id,
+        timestamp: new Date().toISOString()
+      });
+      
       setUser(session?.user);
       
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setIsAdmin(profile?.is_admin || false);
+        await checkAdminStatus(session.user.id);
       } else {
         setIsAdmin(false);
+        setIsLoading(false);
       }
     });
 
@@ -59,7 +91,7 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
           <Link to="/" className="text-3xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
             Ayuda DANA Valencia
           </Link>
-          <UserMenu user={user} isAdmin={isAdmin} />
+          <UserMenu user={user} isAdmin={isAdmin} isLoading={isLoading} />
         </div>
         
         {!hideNavigation && (

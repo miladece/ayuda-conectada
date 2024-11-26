@@ -12,9 +12,10 @@ import {
 interface UserMenuProps {
   user: any;
   isAdmin: boolean;
+  isLoading: boolean;
 }
 
-export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
+export const UserMenu = ({ user, isAdmin, isLoading }: UserMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,6 +30,14 @@ export const UserMenu = ({ user, isAdmin }: UserMenuProps) => {
       document.getElementById('signup-form')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-4">
+        <span className="text-gray-400">Cargando...</span>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
