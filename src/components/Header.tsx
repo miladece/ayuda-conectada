@@ -21,16 +21,21 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
       if (!mounted) return;
       
       try {
+        console.log("Checking admin status for:", userId);
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('user_id', userId)
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Admin check error:", error);
+          throw error;
+        }
         
         if (mounted) {
-          setIsAdmin(profile?.is_admin || false);
+          console.log("Setting admin status:", profile?.is_admin);
+          setIsAdmin(!!profile?.is_admin);
         }
       } catch (error) {
         console.error("Error checking admin status:", error);
@@ -41,17 +46,27 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
     };
 
     const initializeAuth = async () => {
+      if (!mounted) return;
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log("Initializing auth...");
+        const { data: { user }, error } = await supabase.auth.getUser();
         
+        if (error) {
+          console.error("Auth initialization error:", error);
+          throw error;
+        }
+
         if (mounted) {
+          console.log("Setting initial user:", user?.id);
           setUser(user);
+          
           if (user) {
             await checkAdminStatus(user.id);
           }
         }
       } catch (error) {
-        console.error("Error initializing auth:", error);
+        console.error("Auth initialization failed:", error);
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -59,24 +74,33 @@ export const Header = ({ hideNavigation = false }: HeaderProps) => {
       }
     };
 
+    // Initialize auth state
+    console.log("Starting auth initialization");
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
+      console.log("Auth state changed:", { event, userId: session?.user?.id });
+      
       setIsLoading(true);
-      setUser(session?.user);
       
       if (session?.user) {
+        setUser(session.user);
         await checkAdminStatus(session.user.id);
       } else {
+        setUser(null);
         setIsAdmin(false);
       }
       
-      setIsLoading(false);
+      if (mounted) {
+        setIsLoading(false);
+      }
     });
 
     return () => {
+      console.log("Cleaning up auth subscriptions");
       mounted = false;
       subscription.unsubscribe();
     };
